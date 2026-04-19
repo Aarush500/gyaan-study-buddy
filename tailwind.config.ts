@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["Syne", "ui-sans-serif", "system-ui", "sans-serif"],
+        body: ["DM Sans", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["DM Sans", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -22,6 +27,18 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          soft: "hsl(var(--primary-soft))",
+        },
+        weak: {
+          DEFAULT: "hsl(var(--weak))",
+          foreground: "hsl(var(--weak-foreground))",
+          soft: "hsl(var(--weak-soft))",
+          "soft-foreground": "hsl(var(--weak-soft-foreground))",
+        },
+        strong: {
+          DEFAULT: "hsl(var(--strong))",
+          foreground: "hsl(var(--strong-foreground))",
+          soft: "hsl(var(--strong-soft))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
