@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ArrowLeft, BookOpen, MessageCircleQuestion, Sparkles, AlertTriangle, CheckCircle, Lightbulb, FileQuestion, RefreshCw } from 'lucide-react';
+import { ArrowLeft, BookOpen, MessageCircleQuestion, Sparkles, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, Lightbulb, FileQuestion, RefreshCw } from 'lucide-react';
 import type { ChapterNote } from '@/types';
 
 export default function Chapter() {

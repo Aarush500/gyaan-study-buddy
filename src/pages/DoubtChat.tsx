@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Send, Bot, User, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Send, Bot, User, CircleAlert as AlertCircle } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant';

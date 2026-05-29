@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, CheckCircle, XCircle, AlertTriangle, Award, TrendingUp } from 'lucide-react';
+import { ArrowLeft, CircleCheck as CheckCircle, Circle as XCircle, TriangleAlert as AlertTriangle, Award, TrendingUp } from 'lucide-react';
 import type { NotesVerification } from '@/types';
 import { SUBJECTS } from '@/types';
 
