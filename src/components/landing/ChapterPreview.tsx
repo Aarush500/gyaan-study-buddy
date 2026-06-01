@@ -74,7 +74,7 @@ const ChapterPreview = () => {
               <div className="absolute inset-0 grid place-items-center">
                 <div className="rounded-xl border border-border bg-background p-4 shadow-lg text-center w-full max-w-xs">
                   <Lock className="h-5 w-5 mx-auto text-primary" />
-                  <div className="font-display font-extrabold mt-2">Unlock for ₹59</div>
+                  <div className="font-display font-extrabold mt-2">Unlock for ₹39</div>
                   <div className="text-xs text-muted-foreground">One-time. Never expires.</div>
                   <div className="text-[11px] text-muted-foreground mt-0.5">Less than a samosa plate 🥟</div>
                   <Button size="sm" className="mt-3 w-full bg-primary text-primary-foreground hover:bg-primary/90">

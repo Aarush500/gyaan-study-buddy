@@ -26,7 +26,7 @@ const Hero = () => {
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground">
               AI-powered CBSE notes personalised to your weak subjects. Pay
-              <span className="text-foreground font-semibold"> ₹59 per chapter</span> —
+              <span className="text-foreground font-semibold"> ₹39 per chapter</span> —
               no subscription, ever. One free chapter per subject to try.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">

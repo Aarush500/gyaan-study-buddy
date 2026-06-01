@@ -6,7 +6,7 @@ const faqs = [
   { q: "What classes do you cover?", a: "Class 9, 10, 11, 12 CBSE — and college streams (Engineering, Commerce, Science, Arts). Class 9–10 and 11–12 use separate content tracks with different depth." },
   { q: "Can my parents pay for me?", a: "Yes. Tap 'Share with parent' on any chapter — it generates a WhatsApp-ready payment link. Parent pays via UPI, chapter unlocks for you instantly." },
   { q: "Do I need internet to study?", a: "Only the first time. Once you unlock a chapter, it's cached on your device — read it anywhere, even on the school bus." },
-  { q: "Will there be a subscription later?", a: "No. ₹59 per chapter, one-time, forever. We hate subscriptions as much as you do." },
+  { q: "Will there be a subscription later?", a: "No. ₹39 per chapter, one-time, forever. We hate subscriptions as much as you do." },
 ];
 
 const FAQ = () => {
