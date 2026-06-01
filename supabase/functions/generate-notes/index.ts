@@ -12,7 +12,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 function buildPrompt(subject: string, chapterName: string, classLevel: string, language: string, studyStyle: string): string {
-  return `You are a brilliant CBSE teacher who writes notes that students actually love reading. Generate detailed CBSE notes for the following:
+  return `You are a brilliant CBSE teacher who writes notes that students actually love reading. Generate THE MOST DETAILED, exam-ready CBSE notes (based on the LATEST / newest NCERT syllabus) for the following:
 
 Subject: ${subject}
 Chapter: ${chapterName}
@@ -20,7 +20,14 @@ Class: ${classLevel}
 Language: ${language}
 Study Style: ${studyStyle}
 
-Write in simple Indian English mixed with ${language} where appropriate. Use Gen Z friendly terms like "no cap", "fr fr", "lowkey", "hits different" etc. naturally. Use Indian examples (cricket, Bollywood, street food, festivals). Add funny analogies that make concepts click.
+Write in SIMPLE Indian English mixed with ${language} where appropriate. Use Gen Z terms (e.g. "no cap", "lowkey", "hits different") but IN LIMIT — a sprinkle, not every line, so it stays readable. Use Indian examples (cricket, Bollywood, street food, festivals) and funny but tasteful analogies that make concepts click.
+
+IMPORTANT depth & coverage rules:
+- Base everything strictly on the LATEST NCERT textbook for Class ${classLevel} ${subject}. Cover the full chapter, nothing skipped.
+- Make it genuinely DETAILED — aim for roughly a 1.5-day read. Each detailedNotes section must be long, thorough, and self-contained (multiple paragraphs).
+- Split the chapter into clear TOPICS: each detailedNotes entry is one topic that fully explains a sub-part of the chapter.
+- Highlight the most important points clearly inside the content.
+- For exam questions, only include questions that are genuinely likely / definitely asked in exams for this chapter.
 
 Return a JSON object with EXACTLY this structure (no markdown, pure JSON):
 {
@@ -66,7 +73,7 @@ Return a JSON object with EXACTLY this structure (no markdown, pure JSON):
   "quickRevision": ["bullet point 1", "bullet point 2", "bullet point 3", "bullet point 4", "bullet point 5"]
 }
 
-Make keyPoints have 8-10 items. Make detailedNotes have 4-6 sections covering the full chapter. Make mcqs have exactly 5 questions. Make commonMistakes have 3-4 items. Make quickRevision have 5-7 items. Make it so good that students would actually enjoy studying this chapter.`;
+Make keyPoints have 8-10 items. Make detailedNotes have 6-10 detailed topic sections covering the FULL chapter, each with a clear diagramDescription where a diagram helps and a memoryTrick. Make mcqs have exactly 5 questions. Make commonMistakes have 3-4 items. Make quickRevision have 6-8 items. Make it so detailed and engaging that students actually enjoy studying this chapter.`;
 }
 
 Deno.serve(async (req: Request) => {
