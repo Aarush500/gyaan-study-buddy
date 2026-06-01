@@ -71,7 +71,7 @@ export default function DoubtChat() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-screen app-bg flex flex-col">
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to={`/subject/${subjectId}/${chapterId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
