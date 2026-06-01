@@ -3,7 +3,7 @@ const TrustBar = () => {
     { k: "10–12 min", v: "to finish a chapter" },
     { k: "5 yrs", v: "of PYQs in every note" },
     { k: "6", v: "Indian languages" },
-    { k: "₹59", v: "per chapter, forever" },
+    { k: "₹39", v: "per chapter, forever" },
   ];
   return (
     <section className="border-y border-border bg-card/50">

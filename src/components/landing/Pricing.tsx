@@ -9,7 +9,7 @@ const Pricing = () => {
           Pricing
         </div>
         <h2 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight">
-          ₹59 per chapter.<br />
+          ₹39 per chapter.<br />
           <span className="text-muted-foreground">No subscription. Ever.</span>
         </h2>
         <p className="mt-4 text-muted-foreground">
@@ -37,7 +37,7 @@ const Pricing = () => {
           </div>
           <div className="text-xs uppercase tracking-wider text-primary font-semibold">Per chapter</div>
           <div className="mt-2 font-display text-5xl font-extrabold">
-            ₹59 <span className="text-base text-muted-foreground font-body font-normal">one-time</span>
+            ₹39 <span className="text-base text-muted-foreground font-body font-normal">one-time</span>
           </div>
           <div className="text-sm text-muted-foreground mt-1">Less than a samosa plate 🥟</div>
           <ul className="mt-6 space-y-3 text-sm">
