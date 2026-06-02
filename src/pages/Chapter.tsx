@@ -15,8 +15,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import {
   ArrowLeft, ArrowRight, BookOpen, MessageCircleQuestion, Sparkles, TriangleAlert as AlertTriangle,
-  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, RefreshCw,
+  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, RefreshCw, Circle,
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
 
 export default function Chapter() {
@@ -29,6 +30,7 @@ export default function Chapter() {
   const [unlocked, setUnlocked] = useState(false);
   const [validUntil, setValidUntil] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [selectedMcq, setSelectedMcq] = useState<Record<number, string>>({});
@@ -74,6 +76,10 @@ export default function Chapter() {
       .from('bookmarks').select('topic_key')
       .eq('user_id', user.id).eq('subject', subjectName).eq('chapter_name', chapterName);
     setBookmarks(new Set((bms || []).map((b) => b.topic_key)));
+    const { data: prog } = await supabase
+      .from('topic_progress').select('topic_key')
+      .eq('user_id', user.id).eq('subject', subjectName).eq('chapter_name', chapterName);
+    setCompleted(new Set((prog || []).map((p) => p.topic_key)));
   }, [user, subjectName, chapterName, profile]);
 
   useEffect(() => { loadUserState(); }, [loadUserState]);
@@ -110,6 +116,24 @@ export default function Chapter() {
     }
   }
 
+  async function toggleComplete(t: Topic) {
+    if (!user) return;
+    const has = completed.has(t.key);
+    if (has) {
+      await supabase.from('topic_progress').delete()
+        .eq('user_id', user.id).eq('subject', subjectName)
+        .eq('chapter_name', chapterName).eq('topic_key', t.key);
+      const next = new Set(completed); next.delete(t.key); setCompleted(next);
+    } else {
+      await supabase.from('topic_progress').insert({
+        user_id: user.id, subject: subjectName, chapter_name: chapterName,
+        topic_key: t.key, topic_title: t.title,
+      });
+      const next = new Set(completed); next.add(t.key); setCompleted(next);
+      toast.success('Marked complete ✅');
+    }
+  }
+
   async function submitReport() {
     if (!user || !reportReason.trim()) return;
     await supabase.from('content_reports').insert({
@@ -123,6 +147,7 @@ export default function Chapter() {
   }
 
   const isLocked = (i: number) => i > 0 && !unlocked;
+  const progressPct = topics.length ? Math.round((completed.size / topics.length) * 100) : 0;
 
   function goTo(i: number) { setCurrent(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
@@ -168,7 +193,9 @@ export default function Chapter() {
             className={`w-full text-left flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition
               ${isActive ? 'glass-strong font-semibold text-foreground' : 'hover:bg-card/60 text-muted-foreground'}`}
           >
-            <span className="text-xs w-5 shrink-0 opacity-60">{i + 1}</span>
+            {completed.has(t.key)
+              ? <CheckCircle className="w-4 h-4 shrink-0 text-strong" />
+              : <span className="text-xs w-5 shrink-0 opacity-60 text-center">{i + 1}</span>}
             <span className="flex-1 line-clamp-2">{t.title}</span>
             {bookmarks.has(t.key) && <Bookmark className="w-3.5 h-3.5 fill-weak text-weak shrink-0" />}
             {locked && <Lock className="w-3.5 h-3.5 shrink-0 opacity-60" />}
@@ -213,6 +240,10 @@ export default function Chapter() {
         <aside className="hidden lg:block">
           <div className="glass rounded-2xl p-3 sticky top-20">
             <div className="px-2 pb-2 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> Topics</div>
+            <div className="px-2 pb-3">
+              <Progress value={progressPct} className="h-2" />
+              <p className="text-xs text-muted-foreground mt-1">{completed.size}/{topics.length} done • {progressPct}%</p>
+            </div>
             {Sidebar}
           </div>
         </aside>
@@ -229,6 +260,12 @@ export default function Chapter() {
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-xl font-extrabold">{activeTopic.title}</h2>
                 <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="glass rounded-full"
+                    onClick={() => toggleComplete(activeTopic)} title="Mark complete">
+                    {completed.has(activeTopic.key)
+                      ? <CheckCircle className="w-4 h-4 text-strong" />
+                      : <Circle className="w-4 h-4" />}
+                  </Button>
                   <Button variant="ghost" size="icon" className="glass rounded-full"
                     onClick={() => toggleBookmark(activeTopic)} title="Bookmark">
                     <Bookmark className={`w-4 h-4 ${bookmarks.has(activeTopic.key) ? 'fill-weak text-weak' : ''}`} />

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { SubjectStats } from '@/components/dashboard/SubjectStats';
 import { RecentChapters } from '@/components/dashboard/RecentChapters';
 import { ValidityBanner } from '@/components/dashboard/ValidityBanner';
+import { ExamCountdown } from '@/components/dashboard/ExamCountdown';
 import { Flame, BookOpen, MessageCircleQuestion, FileCheck, Settings, LogOut } from 'lucide-react';
 
 export default function Dashboard() {
@@ -49,6 +50,8 @@ export default function Dashboard() {
 
         <ValidityBanner />
 
+        <ExamCountdown classLevel={profile?.class_level || '10'} />
+
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {quickActions.map(action => (
             <Link key={action.label} to={action.to}>
@@ -64,7 +67,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <SubjectStats classLevel={profile?.class_level || '10'} />
+        <SubjectStats classLevel={profile?.class_level || '10'} weakSubjects={profile?.weak_subjects || []} />
 
         <RecentChapters />
       </main>
