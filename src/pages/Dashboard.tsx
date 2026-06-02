@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubjectStats } from '@/components/dashboard/SubjectStats';
 import { RecentChapters } from '@/components/dashboard/RecentChapters';
+import { ValidityBanner } from '@/components/dashboard/ValidityBanner';
 import { Flame, BookOpen, MessageCircleQuestion, FileCheck, Settings, LogOut } from 'lucide-react';
 
 export default function Dashboard() {
@@ -45,6 +46,8 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold mb-2">Welcome back, {profile?.full_name || 'Student'}!</h2>
           <p className="text-muted-foreground">What would you like to study today?</p>
         </section>
+
+        <ValidityBanner />
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {quickActions.map(action => (
