@@ -236,6 +236,10 @@ export default function Chapter() {
             {unlocked && expiryDays != null && (
               <Badge variant="secondary" className="hidden sm:flex">Valid {expiryDays}d</Badge>
             )}
+            <Button variant="outline" size="sm" className="glass" onClick={() => fetchNotes(true)} disabled={refreshing} title="Regenerate with the latest NCERT syllabus">
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline ml-2">Latest NCERT</span>
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden glass">
