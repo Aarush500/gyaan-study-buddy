@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase, callEdgeFunction } from '@/lib/supabase';
 import { buildTopics, type Topic } from '@/lib/topics';
 import { computeValidity, isUnlockValid, daysUntil } from '@/lib/validity';
+import { pushNotification } from '@/lib/notifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -131,6 +132,16 @@ export default function Chapter() {
       });
       const next = new Set(completed); next.add(t.key); setCompleted(next);
       toast.success('Marked complete ✅');
+      const doneCount = next.size;
+      const allDone = topics.length > 0 && doneCount >= topics.length;
+      await pushNotification(user.id, {
+        type: 'topic',
+        title: allDone ? `Chapter complete: ${chapterName} 🎉` : `Topic done: ${t.title}`,
+        body: allDone
+          ? 'You finished every topic in this chapter. Revise before exams!'
+          : `${doneCount}/${topics.length} topics done in ${chapterName}.`,
+        link: `/subject/${subjectName}/${chapterId}`,
+      });
     }
   }
 

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,10 +7,31 @@ import { SubjectStats } from '@/components/dashboard/SubjectStats';
 import { RecentChapters } from '@/components/dashboard/RecentChapters';
 import { ValidityBanner } from '@/components/dashboard/ValidityBanner';
 import { ExamCountdown } from '@/components/dashboard/ExamCountdown';
+import { AttendanceCard } from '@/components/dashboard/AttendanceCard';
+import { NotificationBell } from '@/components/dashboard/NotificationBell';
+import { getExams } from '@/lib/exams';
+import { pushNotification } from '@/lib/notifications';
 import { Flame, BookOpen, MessageCircleQuestion, FileCheck, Settings, LogOut } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    const exams = getExams(profile?.class_level || '10');
+    exams.forEach((e) => {
+      if (e.days > 30) return;
+      const flag = `exam-notif-${e.key}-${e.date.getFullYear()}-${e.days <= 7 ? '7' : '30'}`;
+      if (localStorage.getItem(flag)) return;
+      localStorage.setItem(flag, '1');
+      pushNotification(user.id, {
+        type: 'exam',
+        title: `${e.label} in ${e.days} days`,
+        body: e.days <= 7 ? 'Final stretch — focus on detailed concepts now!' : 'Time to ramp up your revision.',
+        link: '/dashboard',
+      });
+    });
+  }, [user, profile?.class_level]);
 
   const quickActions = [
     { to: '/verify', icon: FileCheck, label: 'Verify My Notes', color: 'bg-amber-500' },
@@ -34,6 +56,7 @@ export default function Dashboard() {
               <Flame className="w-5 h-5 text-orange-500" />
               <span className="font-semibold">{profile?.streak_days || 0} day streak</span>
             </div>
+            <NotificationBell />
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -49,6 +72,8 @@ export default function Dashboard() {
         </section>
 
         <ValidityBanner />
+
+        <AttendanceCard />
 
         <ExamCountdown classLevel={profile?.class_level || '10'} />
 
