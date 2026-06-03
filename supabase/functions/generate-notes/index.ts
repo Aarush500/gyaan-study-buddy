@@ -82,7 +82,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { subject, chapterName, classLevel, language, studyStyle } = await req.json();
+    const { subject, chapterName, classLevel, language, studyStyle, forceRefresh } = await req.json();
 
     if (!subject || !chapterName || !classLevel) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -97,17 +97,22 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Check cache first
-    const { data: cached } = await supabase
-      .from("chapter_notes_cache")
-      .select("*")
-      .eq("cache_key", cacheKey)
-      .maybeSingle();
+    // Check cache first (skip when client requests the latest NCERT-aligned regeneration)
+    if (!forceRefresh) {
+      const { data: cached } = await supabase
+        .from("chapter_notes_cache")
+        .select("*")
+        .eq("cache_key", cacheKey)
+        .maybeSingle();
 
-    if (cached) {
-      return new Response(JSON.stringify({ notes: cached.content, cached: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (cached) {
+        return new Response(JSON.stringify({ notes: cached.content, cached: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // Clear stale cache so the freshly generated notes are stored
+      await supabase.from("chapter_notes_cache").delete().eq("cache_key", cacheKey);
     }
 
     // Generate with Gemini
