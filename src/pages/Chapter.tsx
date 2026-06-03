@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
+import { Model3D, pickModel } from '@/components/learn/Model3D';
 
 export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
@@ -394,10 +395,12 @@ function TopicBody({ notes, topic, selectedMcq, setSelectedMcq }: {
 
   if (topic.kind === 'section') {
     const s = notes.detailedNotes[topic.index];
+    const model = pickModel(notes.title, notes.subject, s.heading, s.diagramDescription);
     return (
       <Card className="glass">
         <CardContent className="pt-6 prose prose-slate max-w-none">
           <p className="whitespace-pre-wrap leading-relaxed">{s.content}</p>
+          {model && <Model3D kind={model} />}
           {s.diagramDescription && (
             <div className="glass rounded-xl p-4 mt-4 not-prose">
               <p className="text-sm font-medium flex items-center gap-2"><BookOpen className="w-4 h-4 text-primary" /> Diagram</p>
