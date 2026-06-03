@@ -277,6 +277,9 @@ export default function Chapter() {
             <Badge className="mb-3">{subjectId} • Class {profile?.class_level || '9'}</Badge>
             <h1 className="text-2xl md:text-3xl font-bold">{notes?.title || chapterName}</h1>
             <p className="text-muted-foreground text-sm mt-1">{notes?.twoLineSummary}</p>
+            <p className="text-xs text-strong mt-2 flex items-center gap-1.5">
+              <RefreshCw className="w-3 h-3" /> Aligned to the latest NCERT syllabus — tap "Latest NCERT" to regenerate anytime.
+            </p>
           </div>
 
           {activeTopic && (
