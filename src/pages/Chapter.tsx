@@ -42,22 +42,30 @@ export default function Chapter() {
   const topics = buildTopics(notes);
   const activeTopic: Topic | undefined = topics[current];
 
-  useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
-      setError(null);
-      const { data, error: err } = await callEdgeFunction<{ notes: ChapterNote; cached: boolean }>('generate-notes', {
-        subject: subjectName,
-        chapterName,
-        classLevel: profile?.class_level || '9',
-        language: profile?.preferred_language || 'English',
-        studyStyle: profile?.study_style || 'detailed',
-      });
-      if (err) setError(err);
-      else if (data?.notes) setNotes(data.notes);
-      setLoading(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNotes = useCallback(async (forceRefresh = false) => {
+    if (forceRefresh) setRefreshing(true); else setLoading(true);
+    setError(null);
+    const { data, error: err } = await callEdgeFunction<{ notes: ChapterNote; cached: boolean }>('generate-notes', {
+      subject: subjectName,
+      chapterName,
+      classLevel: profile?.class_level || '9',
+      language: profile?.preferred_language || 'English',
+      studyStyle: profile?.study_style || 'detailed',
+      forceRefresh,
+    });
+    if (err) setError(err);
+    else if (data?.notes) {
+      setNotes(data.notes);
+      if (forceRefresh) toast.success('Notes refreshed to the latest NCERT syllabus ✨');
     }
-    if (subjectName && chapterName) fetchAll();
+    setLoading(false);
+    setRefreshing(false);
+  }, [subjectName, chapterName, profile]);
+
+  useEffect(() => {
+    if (subjectName && chapterName) fetchNotes(false);
   }, [subjectName, chapterName, profile]);
 
   const loadUserState = useCallback(async () => {
