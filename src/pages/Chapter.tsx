@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
+import { Model3D, pickModel } from '@/components/learn/Model3D';
 
 export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
@@ -41,22 +42,30 @@ export default function Chapter() {
   const topics = buildTopics(notes);
   const activeTopic: Topic | undefined = topics[current];
 
-  useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
-      setError(null);
-      const { data, error: err } = await callEdgeFunction<{ notes: ChapterNote; cached: boolean }>('generate-notes', {
-        subject: subjectName,
-        chapterName,
-        classLevel: profile?.class_level || '9',
-        language: profile?.preferred_language || 'English',
-        studyStyle: profile?.study_style || 'detailed',
-      });
-      if (err) setError(err);
-      else if (data?.notes) setNotes(data.notes);
-      setLoading(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNotes = useCallback(async (forceRefresh = false) => {
+    if (forceRefresh) setRefreshing(true); else setLoading(true);
+    setError(null);
+    const { data, error: err } = await callEdgeFunction<{ notes: ChapterNote; cached: boolean }>('generate-notes', {
+      subject: subjectName,
+      chapterName,
+      classLevel: profile?.class_level || '9',
+      language: profile?.preferred_language || 'English',
+      studyStyle: profile?.study_style || 'detailed',
+      forceRefresh,
+    });
+    if (err) setError(err);
+    else if (data?.notes) {
+      setNotes(data.notes);
+      if (forceRefresh) toast.success('Notes refreshed to the latest NCERT syllabus ✨');
     }
-    if (subjectName && chapterName) fetchAll();
+    setLoading(false);
+    setRefreshing(false);
+  }, [subjectName, chapterName, profile]);
+
+  useEffect(() => {
+    if (subjectName && chapterName) fetchNotes(false);
   }, [subjectName, chapterName, profile]);
 
   const loadUserState = useCallback(async () => {
@@ -227,6 +236,10 @@ export default function Chapter() {
             {unlocked && expiryDays != null && (
               <Badge variant="secondary" className="hidden sm:flex">Valid {expiryDays}d</Badge>
             )}
+            <Button variant="outline" size="sm" className="glass" onClick={() => fetchNotes(true)} disabled={refreshing} title="Regenerate with the latest NCERT syllabus">
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline ml-2">Latest NCERT</span>
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden glass">
@@ -264,6 +277,9 @@ export default function Chapter() {
             <Badge className="mb-3">{subjectId} • Class {profile?.class_level || '9'}</Badge>
             <h1 className="text-2xl md:text-3xl font-bold">{notes?.title || chapterName}</h1>
             <p className="text-muted-foreground text-sm mt-1">{notes?.twoLineSummary}</p>
+            <p className="text-xs text-strong mt-2 flex items-center gap-1.5">
+              <RefreshCw className="w-3 h-3" /> Aligned to the latest NCERT syllabus — tap "Latest NCERT" to regenerate anytime.
+            </p>
           </div>
 
           {activeTopic && (
@@ -394,10 +410,12 @@ function TopicBody({ notes, topic, selectedMcq, setSelectedMcq }: {
 
   if (topic.kind === 'section') {
     const s = notes.detailedNotes[topic.index];
+    const model = pickModel(notes.title, notes.subject, s.heading, s.diagramDescription);
     return (
       <Card className="glass">
         <CardContent className="pt-6 prose prose-slate max-w-none">
           <p className="whitespace-pre-wrap leading-relaxed">{s.content}</p>
+          {model && <Model3D kind={model} />}
           {s.diagramDescription && (
             <div className="glass rounded-xl p-4 mt-4 not-prose">
               <p className="text-sm font-medium flex items-center gap-2"><BookOpen className="w-4 h-4 text-primary" /> Diagram</p>
