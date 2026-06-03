@@ -6,6 +6,8 @@ import { SubjectStats } from '@/components/dashboard/SubjectStats';
 import { RecentChapters } from '@/components/dashboard/RecentChapters';
 import { ValidityBanner } from '@/components/dashboard/ValidityBanner';
 import { ExamCountdown } from '@/components/dashboard/ExamCountdown';
+import { AttendanceCard } from '@/components/dashboard/AttendanceCard';
+import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { Flame, BookOpen, MessageCircleQuestion, FileCheck, Settings, LogOut } from 'lucide-react';
 
 export default function Dashboard() {
@@ -34,6 +36,7 @@ export default function Dashboard() {
               <Flame className="w-5 h-5 text-orange-500" />
               <span className="font-semibold">{profile?.streak_days || 0} day streak</span>
             </div>
+            <NotificationBell />
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -49,6 +52,8 @@ export default function Dashboard() {
         </section>
 
         <ValidityBanner />
+
+        <AttendanceCard />
 
         <ExamCountdown classLevel={profile?.class_level || '10'} />
 
