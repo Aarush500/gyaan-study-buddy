@@ -11,6 +11,19 @@ const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+const ALLOWED_SUBJECTS = [
+  "Mathematics", "Physics", "Chemistry", "Biology", "Science",
+  "English", "Hindi", "Social Science", "History", "Geography",
+  "Civics", "Economics", "Political Science", "Computer Science",
+  "Accountancy", "Business Studies",
+];
+const ALLOWED_CLASS_LEVELS = ["6", "7", "8", "9", "10", "11", "12"];
+const MAX_TEXT = 300;
+
+function isAllowed(value: string, list: string[]): boolean {
+  return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
+}
+
 function buildPrompt(subject: string, chapterName: string, classLevel: string, language: string, studyStyle: string): string {
   return `You are a brilliant CBSE teacher who writes notes that students actually love reading. Generate THE MOST DETAILED, exam-ready CBSE notes (based on the LATEST / newest NCERT syllabus) for the following:
 
@@ -82,10 +95,46 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Require authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseUser = createClient(SUPABASE_URL!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { subject, chapterName, classLevel, language, studyStyle, forceRefresh } = await req.json();
 
     if (!subject || !chapterName || !classLevel) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate inputs to prevent prompt injection and cost abuse
+    if (
+      typeof subject !== "string" || typeof chapterName !== "string" ||
+      typeof classLevel !== "string" ||
+      chapterName.length > MAX_TEXT ||
+      (language && (typeof language !== "string" || language.length > MAX_TEXT)) ||
+      (studyStyle && (typeof studyStyle !== "string" || studyStyle.length > MAX_TEXT)) ||
+      !isAllowed(subject, ALLOWED_SUBJECTS) ||
+      !isAllowed(classLevel, ALLOWED_CLASS_LEVELS)
+    ) {
+      return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -136,7 +185,8 @@ Deno.serve(async (req: Request) => {
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      return new Response(JSON.stringify({ error: "Gemini API error", detail: errText }), {
+      console.error("Gemini API error:", errText);
+      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -182,7 +232,8 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    console.error("Internal error:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
