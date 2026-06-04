@@ -46,6 +46,18 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (
+      typeof subject !== "string" || subject.length > 300 ||
+      typeof chapterName !== "string" || chapterName.length > 300 ||
+      typeof classLevel !== "string" || classLevel.length > 10 ||
+      typeof studentNotes !== "string" || studentNotes.length > 10000
+    ) {
+      return new Response(JSON.stringify({ error: "Invalid input" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const prompt = `You are a CBSE examiner reviewing a Class ${classLevel} student's notes for ${subject} - Chapter: ${chapterName}.
 
 Student's notes:
@@ -89,7 +101,8 @@ Be fair but encouraging. If the student made genuine effort, acknowledge it warm
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      return new Response(JSON.stringify({ error: "Gemini API error", detail: errText }), {
+      console.error("Gemini API error:", errText);
+      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -140,7 +153,8 @@ Be fair but encouraging. If the student made genuine effort, acknowledge it warm
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    console.error("Internal error:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
