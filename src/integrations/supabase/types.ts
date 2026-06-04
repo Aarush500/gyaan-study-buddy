@@ -14,7 +14,351 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          created_at: string | null
+          day: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          day?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bookmarks: {
+        Row: {
+          chapter_name: string
+          created_at: string | null
+          id: string
+          subject: string
+          topic_key: string
+          topic_title: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_name: string
+          created_at?: string | null
+          id?: string
+          subject: string
+          topic_key: string
+          topic_title?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_name?: string
+          created_at?: string | null
+          id?: string
+          subject?: string
+          topic_key?: string
+          topic_title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chapter_notes_cache: {
+        Row: {
+          cache_key: string
+          chapter_name: string
+          class_level: string
+          content: Json
+          created_at: string | null
+          id: string
+          language: string
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          cache_key: string
+          chapter_name: string
+          class_level: string
+          content: Json
+          created_at?: string | null
+          id?: string
+          language: string
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          cache_key?: string
+          chapter_name?: string
+          class_level?: string
+          content?: Json
+          created_at?: string | null
+          id?: string
+          language?: string
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      content_reports: {
+        Row: {
+          chapter_name: string
+          created_at: string | null
+          id: string
+          reason: string
+          status: string | null
+          subject: string
+          topic_key: string | null
+          topic_title: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_name: string
+          created_at?: string | null
+          id?: string
+          reason: string
+          status?: string | null
+          subject: string
+          topic_key?: string | null
+          topic_title?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_name?: string
+          created_at?: string | null
+          id?: string
+          reason?: string
+          status?: string | null
+          subject?: string
+          topic_key?: string | null
+          topic_title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      doubt_sessions: {
+        Row: {
+          chapter_name: string
+          class_level: string
+          created_at: string | null
+          doubts_used: number | null
+          id: string
+          language: string | null
+          max_doubts: number | null
+          messages: Json | null
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_name: string
+          class_level: string
+          created_at?: string | null
+          doubts_used?: number | null
+          id?: string
+          language?: string | null
+          max_doubts?: number | null
+          messages?: Json | null
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_name?: string
+          class_level?: string
+          created_at?: string | null
+          doubts_used?: number | null
+          id?: string
+          language?: string | null
+          max_doubts?: number | null
+          messages?: Json | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes_verifications: {
+        Row: {
+          chapter_name: string
+          class_level: string
+          feedback: string | null
+          id: string
+          score: number
+          student_notes: string
+          subject: string
+          topics_covered: string[] | null
+          topics_missed: string[] | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          chapter_name: string
+          class_level: string
+          feedback?: string | null
+          id?: string
+          score: number
+          student_notes: string
+          subject: string
+          topics_covered?: string[] | null
+          topics_missed?: string[] | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          chapter_name?: string
+          class_level?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          student_notes?: string
+          subject?: string
+          topics_covered?: string[] | null
+          topics_missed?: string[] | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          class_level: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          last_active_date: string | null
+          preferred_language: string | null
+          streak_days: number | null
+          study_style: string | null
+          updated_at: string | null
+          weak_subjects: string[] | null
+        }
+        Insert: {
+          class_level?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          last_active_date?: string | null
+          preferred_language?: string | null
+          streak_days?: number | null
+          study_style?: string | null
+          updated_at?: string | null
+          weak_subjects?: string[] | null
+        }
+        Update: {
+          class_level?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          last_active_date?: string | null
+          preferred_language?: string | null
+          streak_days?: number | null
+          study_style?: string | null
+          updated_at?: string | null
+          weak_subjects?: string[] | null
+        }
+        Relationships: []
+      }
+      topic_progress: {
+        Row: {
+          chapter_name: string
+          completed_at: string | null
+          id: string
+          subject: string
+          topic_key: string
+          topic_title: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_name: string
+          completed_at?: string | null
+          id?: string
+          subject: string
+          topic_key: string
+          topic_title?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_name?: string
+          completed_at?: string | null
+          id?: string
+          subject?: string
+          topic_key?: string
+          topic_title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      unlocked_chapters: {
+        Row: {
+          chapter_name: string
+          class_level: string
+          id: string
+          is_free: boolean | null
+          subject: string
+          unlocked_at: string | null
+          user_id: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          chapter_name: string
+          class_level: string
+          id?: string
+          is_free?: boolean | null
+          subject: string
+          unlocked_at?: string | null
+          user_id: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          chapter_name?: string
+          class_level?: string
+          id?: string
+          is_free?: boolean | null
+          subject?: string
+          unlocked_at?: string | null
+          user_id?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
