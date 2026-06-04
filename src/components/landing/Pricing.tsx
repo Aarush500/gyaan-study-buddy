@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Pricing = () => {
   return (
@@ -28,7 +29,9 @@ const Pricing = () => {
             <Item>One full chapter per subject</Item>
             <Item>3 AI doubt questions on free chapter</Item>
           </ul>
-          <Button variant="outline" className="w-full mt-6 h-11">Start free</Button>
+          <Button asChild variant="outline" className="w-full mt-6 h-11">
+            <Link to="/signup">Start free</Link>
+          </Button>
         </div>
 
         <div className="rounded-2xl border-2 border-primary bg-card p-7 relative shadow-xl shadow-primary/10">
@@ -48,8 +51,8 @@ const Pricing = () => {
             <Item>Offline access + PDF download</Item>
             <Item>Never expires • UPI, cards, parent-pay link</Item>
           </ul>
-          <Button className="w-full mt-6 h-11 bg-primary text-primary-foreground hover:bg-primary/90">
-            Unlock your first chapter
+          <Button asChild className="w-full mt-6 h-11 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Link to="/signup">Unlock your first chapter</Link>
           </Button>
         </div>
       </div>

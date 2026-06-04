@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -16,9 +17,11 @@ const Footer = () => {
             Your first chapter is free.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center relative">
-            <Button size="lg" className="h-12 px-6 bg-background text-foreground hover:bg-background/90">
-              Get started free
-              <ArrowRight className="ml-1 h-4 w-4" />
+            <Button asChild size="lg" className="h-12 px-6 bg-background text-foreground hover:bg-background/90">
+              <Link to="/signup">
+                Get started free
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -30,12 +31,14 @@ const Hero = () => {
               no subscription, ever. One free chapter per subject to try.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-6 text-base">
-                Get started — it's free
-                <ArrowRight className="ml-1 h-4 w-4" />
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-6 text-base">
+                <Link to="/signup">
+                  Get started — it's free
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline" className="h-12 px-6 text-base">
-                I already have an account
+              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
+                <Link to="/login">I already have an account</Link>
               </Button>
             </div>
 
