@@ -46,6 +46,19 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (
+      typeof subject !== "string" || subject.length > 300 ||
+      typeof chapterName !== "string" || chapterName.length > 300 ||
+      typeof question !== "string" || question.length > 500 ||
+      (classLevel && (typeof classLevel !== "string" || classLevel.length > 10)) ||
+      (language && (typeof language !== "string" || language.length > 100))
+    ) {
+      return new Response(JSON.stringify({ error: "Invalid input" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     const lang = language || "English";
 
@@ -120,7 +133,8 @@ Rules:
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();
-      return new Response(JSON.stringify({ error: "Gemini API error", detail: errText }), {
+      console.error("Gemini API error:", errText);
+      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -169,7 +183,8 @@ Rules:
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    console.error("Internal error:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
