@@ -24,6 +24,40 @@ function isAllowed(value: string, list: string[]): boolean {
   return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
 }
 
+// Class 9 (2024+ revised NCERT) uses new textbooks and a refreshed syllabus.
+// Anchor the AI to the correct book + maximum-depth coverage for Class 9.
+function buildSyllabusGuidance(subject: string, classLevel: string): string {
+  if (String(classLevel) !== "9") return "";
+  const subj = subject.toLowerCase();
+
+  if (subj === "english") {
+    return `
+CLASS 9 SYLLABUS RULE (CRITICAL):
+- Use the LATEST revised NCERT Class 9 English textbook "Kaveri" as the ONLY source. Base the entire chapter strictly on "Kaveri" — its prose, poems, characters, themes and exact text.
+- Do NOT use old Beehive / Moments content. Everything must come from "Kaveri".
+- Cover the full chapter from "Kaveri": summary, theme, characters, important lines/quotes, literary devices, value points, and all in-book questions.`;
+  }
+
+  if (subj === "mathematics" || subj === "maths" || subj === "math") {
+    return `
+CLASS 9 SYLLABUS RULE (CRITICAL):
+- Use the LATEST revised NCERT Class 9 Maths textbook "Ganita Manjari" (Ganit Manjari) as the ONLY source. Base the entire chapter strictly on "Ganita Manjari".
+- Do NOT use the old Class 9 maths book content. Follow the topics, order and examples of "Ganita Manjari".
+- Cover every concept, theorem, formula, solved example and exercise type from the chapter, with full step-by-step worked solutions.`;
+  }
+
+  if (subj === "science" || subj === "physics" || subj === "chemistry" || subj === "biology") {
+    return `
+CLASS 9 SYLLABUS RULE (CRITICAL):
+- Use the LATEST revised NCERT Class 9 Science syllabus. Cover the ENTIRE chapter — every topic, sub-topic and sub-sub-topic — nothing skipped.
+- Explain in the MOST DETAILED form possible: every definition, principle, derivation, diagram, activity, example and numerical type from the chapter.
+- Break each topic into sub-topics and explain each one thoroughly so a student needs no other resource.`;
+  }
+
+  return `
+CLASS 9 SYLLABUS RULE: Use the LATEST revised NCERT Class 9 syllabus and cover the full chapter in maximum detail.`;
+}
+
 function buildPrompt(subject: string, chapterName: string, classLevel: string, language: string, studyStyle: string): string {
   return `You are a brilliant CBSE teacher who writes notes that students actually love reading. Generate THE MOST DETAILED, exam-ready CBSE notes (based on the LATEST / newest NCERT syllabus) for the following:
 
