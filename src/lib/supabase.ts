@@ -1,4 +1,6 @@
-export { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
+
+export { supabase };
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
