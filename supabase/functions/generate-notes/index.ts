@@ -32,6 +32,7 @@ Chapter: ${chapterName}
 Class: ${classLevel}
 Language: ${language}
 Study Style: ${studyStyle}
+${buildSyllabusGuidance(subject, classLevel)}
 
 Write in SIMPLE Indian English mixed with ${language} where appropriate. Use Gen Z terms (e.g. "no cap", "lowkey", "hits different") but IN LIMIT — a sprinkle, not every line, so it stays readable. Use Indian examples (cricket, Bollywood, street food, festivals) and funny but tasteful analogies that make concepts click.
 
