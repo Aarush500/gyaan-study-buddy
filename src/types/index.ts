@@ -74,7 +74,7 @@ export const SUBJECTS = [
   { id: 'Computer Science', name: 'Computer Science', icon: 'Monitor', color: 'cyan' },
 ] as const;
 
-export const CLASSES = ['6', '7', '8', '9', '10', '11', '12'] as const;
+export const CLASSES = ['9', '10', '11', '12'] as const;
 
 export const LANGUAGES = ['English', 'Hindi', 'Hinglish', 'Tamil', 'Telugu', 'Marathi', 'Bengali'] as const;
 
