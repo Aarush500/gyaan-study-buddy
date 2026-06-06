@@ -59,7 +59,7 @@ CLASS 9 SYLLABUS RULE: Use the LATEST revised NCERT Class 9 syllabus and cover t
 }
 
 function buildPrompt(subject: string, chapterName: string, classLevel: string, language: string, studyStyle: string): string {
-  return `You are a brilliant CBSE teacher who writes notes that students actually love reading. Generate THE MOST DETAILED, exam-ready CBSE notes (based on the LATEST / newest NCERT syllabus) for the following:
+  return `You are the coolest, most experienced CBSE teacher in India — 20 years of teaching, you know EXACTLY what comes in the exam. You are sitting right next to one student, explaining this chapter from scratch. Write notes for:
 
 Subject: ${subject}
 Chapter: ${chapterName}
@@ -68,14 +68,38 @@ Language: ${language}
 Study Style: ${studyStyle}
 ${buildSyllabusGuidance(subject, classLevel)}
 
-Write in SIMPLE Indian English mixed with ${language} where appropriate. Use Gen Z terms (e.g. "no cap", "lowkey", "hits different") but IN LIMIT — a sprinkle, not every line, so it stays readable. Use Indian examples (cricket, Bollywood, street food, festivals) and funny but tasteful analogies that make concepts click.
+================= WRITING STYLE (FOLLOW EXACTLY — THIS IS THE MOST IMPORTANT RULE) =================
+- Write like a real teacher talking, NOT a textbook or PDF. Talk directly to the student: "you", "your", "remember this", "listen carefully".
+- Use SIMPLE English a Class 9 student reads without a dictionary. Short, clear, punchy sentences. No passive voice. No "it is to be noted that", "aforementioned", "henceforth", "whereby".
+- Use PRESENT tense for Science chapters, PAST tense for History.
+- FUNNY EXAMPLES BUT IN LIMIT: exactly ONE funny relatable Indian example per major topic (cricket, chai, Bollywood, school life, mom scolding, auto rickshaw, samosa, IPL, street food, neighbourhood uncle), then back to serious explanation. Do not overdo jokes.
+- End every major topic with one encouraging line ("You've got this", "That wasn't so bad right?", "One topic down — you're already ahead of half your class").
+- If something is complex, say "This sounds complicated but it's actually simple — here's why" and then simplify. Never make the student feel stupid.
 
-IMPORTANT depth & coverage rules:
-- Base everything strictly on the LATEST NCERT textbook for Class ${classLevel} ${subject}. Cover the full chapter, nothing skipped.
-- Make it genuinely DETAILED — aim for roughly a 1.5-day read. Each detailedNotes section must be long, thorough, and self-contained (multiple paragraphs).
-- Split the chapter into clear TOPICS: each detailedNotes entry is one topic that fully explains a sub-part of the chapter.
-- Highlight the most important points clearly inside the content.
-- For exam questions, only include questions that are genuinely likely / definitely asked in exams for this chapter.
+================= COVERAGE =================
+- Base everything strictly on the LATEST NCERT textbook for Class ${classLevel} ${subject}. Cover the FULL chapter, nothing skipped.
+- Make it genuinely DETAILED — roughly a 1.5-day read. Each detailedNotes section must be long and self-contained.
+
+================= HOW TO FILL EACH FIELD (MAP THE STRUCTURE BELOW INTO THE JSON) =================
+- twoLineSummary: Start with a HOOK — a curious question or scenario (e.g. "Ever wondered why you feel lighter in a swimming pool? That's literally today's chapter."). NEVER start with "In this chapter we will learn".
+- examBox: This is "WHAT WILL COME IN THE EXAM" — show it first in the student's mind. List question types from the last 5 years of CBSE board exams with marks and how often they appeared. Fill likely1Mark, likely3Mark, likely5Mark and real previousYearQuestions (with actual year + marks).
+- keyPoints: 8-10 crisp copy-worthy points, each max 2 lines — the exact points a student writes in their notebook.
+- detailedNotes: 6-10 TOPIC sections covering the full chapter. For EACH topic's "content", write minimum 3-4 paragraphs in this exact order:
+    1) WHAT is it (define simply)
+    2) WHY does it happen / why did it happen (cause)
+    3) HOW does it work / how did it happen (process/events with specific names, dates, facts)
+    4) WHY does it matter (significance/impact)
+    5) one funny Indian example
+    6) sprinkle sidebar callouts INSIDE the content using these exact labels where relevant: "Examiner tip:", "Don't confuse:", "Fun fact:", "Common mistake:"
+    7) a model answer guide for this topic: "FOR 1 MARK:" one crisp sentence; "FOR 2-3 MARKS:" define + brief explain + one example (4-5 lines); "FOR 5 MARKS:" full structure — INTRODUCTION (2-3 lines: define + context + one big-picture line), BODY 1 causes/background using connectors (Firstly, Moreover, In addition, Furthermore), BODY 2 main events/explanation with specific facts and dates, BODY 3 impact/significance, CONCLUSION (2 lines connecting to today or India). Add "Diagram:" if a diagram helps.
+    8) end with the encouraging line.
+  - diagramDescription: describe the diagram STEP BY STEP in plain text so a student can draw it (e.g. "Draw a rectangle ABCD, put a circle O in the centre, draw 4 arrows from O labelled N/S/E/W..."). Provide this for at least 2-3 topics.
+  - memoryTrick: a funny, Indian, easy-to-remember mnemonic for that topic.
+- shortAnswerQuestions: include all the IMPORTANT QUESTIONS — at least 10 one-mark style (definitions/names/dates/fill-in-blank), 8 two-to-three-mark, and 5 five-mark questions. For every 5-mark question put the FULL model answer (intro-body-conclusion) inside its "answer". Make the FIRST entry the "MOST IMPORTANT QUESTION OF THE CHAPTER" (prefix the question with "⭐ MOST IMPORTANT — ") with the most detailed fully-written model answer of the whole chapter.
+- commonMistakes: 3-4 real "students write X but correct is Y" items.
+- mcqs: exactly 5.
+- quickRevision: 6-8 bullets, AND make the LAST 3-5 bullets MEMORY TRICKS / mnemonics (funny, Indian where possible) for the hardest things to remember.
+- Only include exam questions that are genuinely likely / definitely asked for this chapter.
 
 Return a JSON object with EXACTLY this structure (no markdown, pure JSON):
 {
