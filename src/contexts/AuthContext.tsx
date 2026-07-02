@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setLoading(false);
       }
-    });
+    }).catch(() => setLoading(false));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -50,9 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function fetchProfile(userId: string) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-    setProfile(data);
-    setLoading(false);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+      setProfile(data);
+    } catch (err) {
+      console.warn('fetchProfile failed', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function signUp(email: string, password: string, fullName: string, classLevel: string) {
