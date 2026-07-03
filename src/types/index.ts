@@ -76,7 +76,7 @@ export const SUBJECTS = [
 
 export const CLASSES = ['9', '10', '11', '12'] as const;
 
-export const LANGUAGES = ['English', 'Hindi', 'Hinglish', 'Tamil', 'Telugu', 'Marathi', 'Bengali'] as const;
+export const LANGUAGES = ['English', 'Hindi', 'Tamil', 'Telugu', 'Kannada', 'Marathi'] as const;
 
 export const STUDY_STYLES = [
   { id: 'detailed', name: 'Detailed Notes', description: 'Full explanation with examples' },

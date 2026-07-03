@@ -35,6 +35,8 @@ export default function Login() {
     if (error) {
       setGoogleLoading(false);
       toast({ title: 'Google sign-in failed', description: error, variant: 'destructive' });
+    } else {
+      navigate('/dashboard');
     }
   }
 
