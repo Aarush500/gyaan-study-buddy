@@ -31,10 +31,12 @@ export default function Login() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
+    const { error, redirected } = await signInWithGoogle();
     if (error) {
       setGoogleLoading(false);
       toast({ title: 'Google sign-in failed', description: error, variant: 'destructive' });
+    } else if (!redirected) {
+      navigate('/dashboard');
     }
   }
 

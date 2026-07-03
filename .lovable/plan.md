@@ -1,46 +1,36 @@
-# Gyaan v2 — Build Plan
+Plan to make the app stable and usable:
 
-Pricing is already changed to ₹39 and Gemini AI is wired up. Below is the rest, grouped so each phase ships something usable. Tell me which phase to start (or "go in order").
+1. Fix Google sign-in end-to-end
+- Reconfigure managed Google authentication for Lovable Cloud.
+- Update the Google sign-in flow so it uses Lovable Cloud auth correctly and does not manually break the session.
+- After Google login, ensure the app creates/fills a user profile if one does not exist, then redirects to the dashboard.
+- Keep email/password login working.
 
-## Phase 1 — Reader experience (topic-wise) + unlock + glassmorphism
-The core of what you described.
-- **Topic-wise chapter reader**: each chapter splits into multiple topics. Read one topic, "Next topic" button at the end, plus a **chapter sidebar** listing all topics (responsive: drawer on mobile, fixed sidebar on desktop).
-- **First topic free, rest blurred** with a transparent glassmorphism unlock card → "Unlock ₹39 (less than a samosa plate)".
-- **Polished glassmorphism buttons** everywhere (frosted, soft glow) in the existing purple/orange/green theme.
-- **Bookmark button** that highlights/persists (saved per user, stays highlighted across reloads — "highlights when the system is shut off").
-- **Doubt button** (floating) → existing Gemini doubt chat.
-- **Report button** so students can flag content errors (stored in DB, reviewable).
-- Detailed, simple Gen-Z language notes with diagrams (described/illustrated), highlighted key points, and "definitely-in-exam" questions per topic.
+2. Stop the preview from getting stuck or blank
+- Add a safe app-level fallback so auth/profile/database errors show a clear screen instead of crashing the preview.
+- Harden auth loading so it always finishes, even if profile creation/fetch fails.
+- Guard backend calls when env/session values are missing so pages do not crash during preview reloads.
+- Verify `/`, `/login`, `/signup`, and `/dashboard` render without console errors.
 
-## Phase 2 — Validity & payment unlock window
-- Payment unlocks content with **exactly 1-year validity**.
-- Annual cycle anchored **1st May → 30th April**; after that, validity expires and must renew.
-- Show validity status + countdown in the reader/dashboard.
+3. Fix language support properly
+- Standardize the app to exactly 6 supported study languages: English, Hindi, Tamil, Telugu, Kannada, Marathi.
+- Add language selection during signup/profile creation.
+- Store the selected language on the user profile.
+- Pass the selected language to chapter generation and doubt chat.
+- Strengthen Gemini prompts so the generated notes and doubt answers are written fully in the selected language, not just lightly translated.
 
-## Phase 3 — Smooth auth
-- Rebuild login/signup for a **very smooth** experience (Email + Google, instant transitions, shared background from landing → login → dashboard, optimistic UI, no jank).
+4. Make profile creation reliable for all auth methods
+- Email signup will create a profile with name, class, and language.
+- Google signup/login will auto-create a default profile from the Google account if missing.
+- Defaults will stay Class 9 + English if the user has not chosen yet.
 
-## Phase 4 — Dashboard intelligence
-- **Weak subjects/topics get priority** ordering and visual emphasis.
-- **Board exam countdown** (10th grade) with "boards in N days".
-- **Mid-term & final-term predictions** + "focus on detailed concepts near exam" mode.
-- Per-topic completion tracking.
+5. Validate after implementation
+- Test the public pages and protected redirect flow.
+- Test login/signup screen buttons.
+- Test Google button behavior as far as the preview environment allows.
+- Check for console/runtime errors after the changes.
 
-## Phase 5 — Attendance + notifications
-- **Real-time attendance** system (daily check-in, streaks, stored in DB).
-- **Notification system** (in-app) after finishing each topic, for weak subjects, and exam reminders.
-
-## Phase 6 — Advanced content
-- **3D models** where useful (e.g. Science) via react-three-fiber.
-- Live NCERT-change awareness note (content regenerates on reload so newest syllabus is reflected).
-
-## Technical notes
-- New DB tables (Lovable Cloud): `bookmarks`, `unlocks` (with validity dates), `reports`, `attendance`, `notifications`, `topic_progress`, plus topic-level note caching.
-- Notes generation upgraded to return topic-segmented content (each topic = its own section with diagrams, key points, exam questions).
-- 3D via `@react-three/fiber@^8.18` + `@react-three/drei@^9.122.0`.
-- All screens fully responsive to device dimensions.
-
-## About your GitHub repo & "other version"
-I can't access external GitHub repos or your other Lovable project from here, so I can't copy code/features from `github.com/Aarush500/gyaan`. If you want specific features from there, paste the feature list or the relevant code and I'll implement them in this project.
-
-Reply with the phase to start (recommended: Phase 1), or "go in order".
+Technical details:
+- I will not edit auto-generated backend client files.
+- I will avoid changing OAuth redirect URLs to protected routes.
+- If the preview environment itself blocks OAuth popups/fetches, the code will still fail gracefully instead of blanking the app, and the published app flow will use the correct managed Google auth path.

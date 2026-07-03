@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { CLASSES } from '@/types';
+import { CLASSES, LANGUAGES } from '@/types';
 import { AuthShell, GoogleButton } from '@/components/auth/AuthShell';
 
 export default function Signup() {
@@ -15,6 +15,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [classLevel, setClassLevel] = useState('9');
+  const [preferredLanguage, setPreferredLanguage] = useState('English');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuth();
@@ -24,7 +25,7 @@ export default function Signup() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, classLevel);
+    const { error } = await signUp(email, password, fullName, classLevel, preferredLanguage);
     setLoading(false);
     if (error) {
       toast({ title: 'Signup failed', description: error, variant: 'destructive' });
@@ -36,10 +37,12 @@ export default function Signup() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
+    const { error, redirected } = await signInWithGoogle();
     if (error) {
       setGoogleLoading(false);
       toast({ title: 'Google sign-in failed', description: error, variant: 'destructive' });
+    } else if (!redirected) {
+      navigate('/dashboard');
     }
   }
 
@@ -82,6 +85,15 @@ export default function Signup() {
               <SelectTrigger><SelectValue placeholder="Select your class" /></SelectTrigger>
               <SelectContent>
                 {CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="language">Study language</Label>
+            <Select value={preferredLanguage} onValueChange={setPreferredLanguage}>
+              <SelectTrigger><SelectValue placeholder="Select your language" /></SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map(language => <SelectItem key={language} value={language}>{language}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
