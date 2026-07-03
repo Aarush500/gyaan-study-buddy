@@ -4,12 +4,18 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
 };
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const ALLOWED_LANGUAGES = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Marathi"];
+const ALLOWED_CLASS_LEVELS = ["9", "10", "11", "12"];
+
+function isAllowed(value: string, list: string[]): boolean {
+  return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -50,8 +56,8 @@ Deno.serve(async (req: Request) => {
       typeof subject !== "string" || subject.length > 300 ||
       typeof chapterName !== "string" || chapterName.length > 300 ||
       typeof question !== "string" || question.length > 500 ||
-      (classLevel && (typeof classLevel !== "string" || classLevel.length > 10)) ||
-      (language && (typeof language !== "string" || language.length > 100))
+      (classLevel && (typeof classLevel !== "string" || !isAllowed(classLevel, ALLOWED_CLASS_LEVELS))) ||
+      (language && (typeof language !== "string" || language.length > 100 || !isAllowed(language, ALLOWED_LANGUAGES)))
     ) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
@@ -60,7 +66,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const lang = language || "English";
+    const lang = isAllowed(language || "", ALLOWED_LANGUAGES) ? language : "English";
 
     // Get or create doubt session
     let session = null;
@@ -103,7 +109,7 @@ Deno.serve(async (req: Request) => {
     const systemPrompt = `You are Gyaan, a friendly CBSE tutor helping a Class ${classLevel} student with ${subject} - Chapter: ${chapterName}.
 
 Rules:
-1. Answer in ${lang} (mix Hindi/regional words naturally if not English)
+1. Answer fully in ${lang}. Do not mix English unless ${lang} is English or the term is a required NCERT technical word; if you use an English technical word, explain it immediately in ${lang}.
 2. Keep answer under 150 words
 3. ${isMathOrScience ? "For Math/Science: solve step by step, show each step clearly numbered" : "Give clear, concise explanation"}
 4. Use Indian examples and relatable analogies

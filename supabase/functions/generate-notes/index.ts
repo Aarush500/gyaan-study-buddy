@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
 };
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
@@ -17,7 +17,8 @@ const ALLOWED_SUBJECTS = [
   "Civics", "Economics", "Political Science", "Computer Science",
   "Accountancy", "Business Studies",
 ];
-const ALLOWED_CLASS_LEVELS = ["6", "7", "8", "9", "10", "11", "12"];
+const ALLOWED_CLASS_LEVELS = ["9", "10", "11", "12"];
+const ALLOWED_LANGUAGES = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Marathi"];
 const MAX_TEXT = 300;
 
 function isAllowed(value: string, list: string[]): boolean {
@@ -68,9 +69,15 @@ Language: ${language}
 Study Style: ${studyStyle}
 ${buildSyllabusGuidance(subject, classLevel)}
 
+================= LANGUAGE RULE (CRITICAL) =================
+- The chosen language is ${language}. EVERY user-visible JSON value must be written in ${language} only.
+- Keep the JSON keys exactly in English as shown, but translate/write all titles, summaries, notes, questions, answers, MCQs, mistakes, exam tips, diagram descriptions and memory tricks in ${language}.
+- Do not mix English unless the chosen language is English, or unless a technical NCERT term is normally written in English. If you use an English technical term in another language, explain it immediately in ${language}.
+- Supported languages are exactly: English, Hindi, Tamil, Telugu, Kannada, Marathi. Never output Bengali, Hinglish, or any other language unless the selected language is English and the student-facing tone needs normal Indian English.
+
 ================= WRITING STYLE (FOLLOW EXACTLY — THIS IS THE MOST IMPORTANT RULE) =================
 - Write like a real teacher talking, NOT a textbook or PDF. Talk directly to the student: "you", "your", "remember this", "listen carefully".
-- Use SIMPLE English a Class 9 student reads without a dictionary. Short, clear, punchy sentences. No passive voice. No "it is to be noted that", "aforementioned", "henceforth", "whereby".
+- Use SIMPLE student-friendly ${language}. Short, clear, punchy sentences. No passive voice. No "it is to be noted that", "aforementioned", "henceforth", "whereby".
 - Use PRESENT tense for Science chapters, PAST tense for History.
 - FUNNY EXAMPLES BUT IN LIMIT: exactly ONE funny relatable Indian example per major topic (cricket, chai, Bollywood, school life, mom scolding, auto rickshaw, samosa, IPL, street food, neighbourhood uncle), then back to serious explanation. Do not overdo jokes.
 - End every major topic with one encouraging line ("You've got this", "That wasn't so bad right?", "One topic down — you're already ahead of half your class").
@@ -191,7 +198,8 @@ Deno.serve(async (req: Request) => {
       (language && (typeof language !== "string" || language.length > MAX_TEXT)) ||
       (studyStyle && (typeof studyStyle !== "string" || studyStyle.length > MAX_TEXT)) ||
       !isAllowed(subject, ALLOWED_SUBJECTS) ||
-      !isAllowed(classLevel, ALLOWED_CLASS_LEVELS)
+      !isAllowed(classLevel, ALLOWED_CLASS_LEVELS) ||
+      (language && !isAllowed(language, ALLOWED_LANGUAGES))
     ) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
@@ -199,7 +207,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const lang = language || "English";
+    const lang = isAllowed(language || "", ALLOWED_LANGUAGES) ? language : "English";
     const style = studyStyle || "detailed";
     const cacheKey = `${classLevel}__${subject}__${chapterName}__${lang}`.toLowerCase().replace(/\s+/g, "_");
 
