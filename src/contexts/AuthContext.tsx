@@ -11,7 +11,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, classLevel: string, preferredLanguage: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithGoogle: () => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<{ error?: string; redirected?: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error?: string }>;
 }
@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         extraParams: { prompt: 'select_account' },
       });
 
-      if (result.redirected) return {};
+      if (result.redirected) return { redirected: true };
       if (result.error) return { error: result.error.message };
 
       const { data: { user: authedUser }, error } = await supabase.auth.getUser();
