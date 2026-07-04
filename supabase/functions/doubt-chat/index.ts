@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
 };
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const ALLOWED_LANGUAGES = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Marathi"];
@@ -117,37 +117,33 @@ Rules:
 6. If you don't know something, say so honestly - never make up wrong answers
 7. Be warm, friendly, like a cool older sibling helping out`;
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: systemPrompt + "\n\nStudent question: " + question }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.5,
-            maxOutputTokens: 512,
-          },
-        }),
-      }
-    );
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: question },
+        ],
+      }),
+    });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini API error:", errText);
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      console.error("AI gateway error:", aiRes.status, errText);
+      const status = aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 502;
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status: 502,
+        status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const geminiData = await geminiRes.json();
-    const answer = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "Sorry, I couldn't generate an answer. Try again!";
+    const aiData = await aiRes.json();
+    const answer = aiData.choices?.[0]?.message?.content ?? "Sorry, I couldn't generate an answer. Try again!";
 
     const newMessages = [
       ...(session?.messages ?? []),
