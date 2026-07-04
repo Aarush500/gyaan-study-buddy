@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, content-type, apikey, x-client-info",
 };
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -231,39 +231,40 @@ Deno.serve(async (req: Request) => {
       await supabase.from("chapter_notes_cache").delete().eq("cache_key", cacheKey);
     }
 
-    // Generate with Gemini
+    // Generate with Lovable AI Gateway
     const prompt = buildPrompt(subject, chapterName, classLevel, lang, style);
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json",
-          },
-        }),
-      }
-    );
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: "You output only valid JSON. No markdown, no code fences." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini API error:", errText);
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      console.error("AI gateway error:", aiRes.status, errText);
+      const status = aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 502;
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status: 502,
+        status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const geminiData = await geminiRes.json();
-    const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const aiData = await aiRes.json();
+    const rawText = aiData.choices?.[0]?.message?.content;
 
     if (!rawText) {
-      return new Response(JSON.stringify({ error: "Empty response from Gemini" }), {
+      return new Response(JSON.stringify({ error: "Empty response from AI" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -278,7 +279,7 @@ Deno.serve(async (req: Request) => {
       if (jsonMatch) {
         notes = JSON.parse(jsonMatch[0]);
       } else {
-        return new Response(JSON.stringify({ error: "Could not parse Gemini response as JSON" }), {
+        return new Response(JSON.stringify({ error: "Could not parse AI response as JSON" }), {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
