@@ -253,6 +253,8 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
+    const unlocked = await isChapterUnlocked(supabase, user.id, subject, chapterName, classLevel);
+
     // Check cache first (skip when client requests the latest NCERT-aligned regeneration)
     if (!forceRefresh) {
       const { data: cached } = await supabase
@@ -262,7 +264,7 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
 
       if (cached) {
-        return new Response(JSON.stringify({ notes: cached.content, cached: true }), {
+        return new Response(JSON.stringify({ notes: gateNotes(cached.content, unlocked), cached: true, locked: !unlocked }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -337,7 +339,7 @@ Deno.serve(async (req: Request) => {
       content: notes,
     });
 
-    return new Response(JSON.stringify({ notes, cached: false }), {
+    return new Response(JSON.stringify({ notes: gateNotes(notes, unlocked), cached: false, locked: !unlocked }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
