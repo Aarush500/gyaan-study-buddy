@@ -63,38 +63,74 @@ async function isChapterUnlocked(
   return new Date(data.valid_until).getTime() > Date.now();
 }
 
-// Class 9 (2024+ revised NCERT) uses new textbooks and a refreshed syllabus.
-// Anchor the AI to the correct book + maximum-depth coverage for Class 9.
+// Chapters removed from a class in the 2026-27 syllabus. Requests for these must
+// be rejected with a clear message instead of generating outdated content.
+const DELETED_CHAPTERS: Record<string, string[]> = {
+  "9": ["gravitation"],
+};
+
+function findDeletedChapter(chapterName: string, classLevel: string): boolean {
+  const removed = DELETED_CHAPTERS[String(classLevel)] || [];
+  const name = chapterName.toLowerCase();
+  return removed.some((r) => name.includes(r));
+}
+
+// Anchor the AI to the CORRECT NCERT syllabus/books for the student's class and
+// the 2026-27 academic year. Never mix old and new syllabus.
 function buildSyllabusGuidance(subject: string, classLevel: string): string {
-  if (String(classLevel) !== "9") return "";
   const subj = subject.toLowerCase();
+  const cls = String(classLevel);
+  const isMaths = subj === "mathematics" || subj === "maths" || subj === "math";
+  const isScience = ["science", "physics", "chemistry", "biology"].includes(subj);
+  const isSST = ["social science", "history", "geography", "civics", "political science", "economics"].includes(subj);
+  const isEnglish = subj === "english";
+  const isSanskrit = subj === "sanskrit";
 
-  if (subj === "english") {
+  if (cls === "9") {
+    let book = "";
+    if (isMaths) {
+      book = `
+- SOURCE BOOK: "Ganita Manjari Part 1" (NEW NCF-2023). Do NOT use the OLD Class 9 Maths book — it is dead.
+- New topics moved down into Class 9: Arithmetic Progression, Pair of Linear Equations in Two Variables, Areas Related to Circles, Geometric Progression (previously Class 11), and Polynomials now split into two separate chapters.
+- TWO-LEVEL SYSTEM: for EVERY topic clearly state whether it is "Proficiency Level" (mandatory for all students) or "Advanced Level" (optional — JEE/Olympiad). Never omit the level.`;
+    } else if (isScience) {
+      book = `
+- SOURCE BOOK: "Exploration" (NEW NCF-2023) — an integrated book combining Physics, Chemistry, Biology and a BRAND NEW branch "Earth Science" (natural cycles, Earth systems, radiation, environmental balance — never in Class 9 before).
+- GRAVITATION has been REMOVED from Class 9 — never generate it here.
+- TWO-LEVEL SYSTEM: for EVERY topic clearly state whether it is "Proficiency Level" (all students) or "Advanced Level" (NEET/JEE aspirants). Biology is expanded for early competitive prep.`;
+    } else if (isSST) {
+      book = `
+- SOURCE BOOK: "Understanding Society: India and Beyond" (NEW NCF-2023) — ONE integrated book of 16 interconnected themes. The old 4 separate books are dead. Use an INTEGRATED thematic approach connecting History, Geography, Civics and Economics together, not 4 separate subjects.
+- History runs from Early Human History up to 1200 CE (Harappan Culture, Bhakti Traditions — moved down from Class 12). Geography includes Class-11 topics: Plate Tectonics, Interior & Composition of the Earth, Ocean Relief, Biomes Distribution. Civics includes Class-11 topics: Justice, Authority, Elections. Economics focuses on PRACTICAL financial literacy — budgeting, income tax, investments, entrepreneurship — not dry theory.`;
+    } else if (isEnglish) {
+      book = `
+- SOURCE BOOK: "Kaveri" (NEW NCF-2023), a single integrated English textbook. Beehive and Moments are GONE — never use them.
+- Writing section now covers Persuasive essays, Literary Analysis, Research Writing and Creative Writing. Focus on communication skills and critical thinking, not just comprehension.`;
+    } else if (isSanskrit) {
+      book = `
+- SOURCE BOOK: "Sharda" (NEW NCF-2023). Translation (Anuvad) removed from Writing → replaced by Dialogue and Story Completion (Samvadpurti, Kathapurti). Tatpurusha Samas added to Grammar. Ubhayapadi verbs and expanded Avyaya list included.`;
+    } else {
+      book = `
+- Use the NEW NCF-2023 Class 9 book for this subject. Do NOT use any old (pre-2024) Class 9 book.`;
+    }
     return `
-CLASS 9 SYLLABUS RULE (CRITICAL):
-- Use the LATEST revised NCERT Class 9 English textbook "Kaveri" as the ONLY source. Base the entire chapter strictly on "Kaveri" — its prose, poems, characters, themes and exact text.
-- Do NOT use old Beehive / Moments content. Everything must come from "Kaveri".
-- Cover the full chapter from "Kaveri": summary, theme, characters, important lines/quotes, literary devices, value points, and all in-book questions.`;
+CLASS 9 SYLLABUS RULE (CRITICAL — 2026-27, biggest change in 20 years under NEP 2020 / NCF-SE 2023):${book}
+- Always MENTION the source book name in the notes so students can cross-check.
+- All examples/contexts must be India-centric.`;
   }
 
-  if (subj === "mathematics" || subj === "maths" || subj === "math") {
+  if (cls === "10") {
     return `
-CLASS 9 SYLLABUS RULE (CRITICAL):
-- Use the LATEST revised NCERT Class 9 Maths textbook "Ganita Manjari" (Ganit Manjari) as the ONLY source. Base the entire chapter strictly on "Ganita Manjari".
-- Do NOT use the old Class 9 maths book content. Follow the topics, order and examples of "Ganita Manjari".
-- Cover every concept, theorem, formula, solved example and exercise type from the chapter, with full step-by-step worked solutions.`;
+CLASS 10 SYLLABUS RULE (CRITICAL): Class 10 still uses the EXISTING/OLD NCERT books (new books arrive only in 2027-28). Use the standard current Class 10 syllabus. Social Science remains FOUR separate subjects (History, Geography, Political Science, Economics). Do NOT apply any Class 9 NCF-2023 changes here. All examples India-centric.`;
   }
 
-  if (subj === "science" || subj === "physics" || subj === "chemistry" || subj === "biology") {
+  if (cls === "11") {
     return `
-CLASS 9 SYLLABUS RULE (CRITICAL):
-- Use the LATEST revised NCERT Class 9 Science syllabus. Cover the ENTIRE chapter — every topic, sub-topic and sub-sub-topic — nothing skipped.
-- Explain in the MOST DETAILED form possible: every definition, principle, derivation, diagram, activity, example and numerical type from the chapter.
-- Break each topic into sub-topics and explain each one thoroughly so a student needs no other resource.`;
+CLASS 11 SYLLABUS RULE (CRITICAL): Class 11 is transitioning to new books in 2026-27, and the rigid Science/Commerce/Arts stream system is being broken — students can mix subjects across streams. Do NOT assume a fixed stream. Cover the full chapter in maximum detail. All examples India-centric.`;
   }
 
   return `
-CLASS 9 SYLLABUS RULE: Use the LATEST revised NCERT Class 9 syllabus and cover the full chapter in maximum detail.`;
+CLASS ${cls} SYLLABUS RULE: Use the existing current CBSE Class ${cls} syllabus (no NCF-2023 changes yet). Cover the full chapter in maximum detail. All examples India-centric.`;
 }
 
 function buildPrompt(subject: string, chapterName: string, classLevel: string, language: string, studyStyle: string): string {
