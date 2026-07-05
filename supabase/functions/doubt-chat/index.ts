@@ -102,6 +102,14 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     const lang = isAllowed(language || "", ALLOWED_LANGUAGES) ? language : "English";
 
+    // Chapter removed from this class in the 2026-27 syllabus.
+    if (classLevel && isDeletedChapter(chapterName, classLevel)) {
+      const msg = `This chapter has been removed from Class ${classLevel} in the 2026-27 syllabus. It is now taught in higher classes.`;
+      return new Response(JSON.stringify({ answer: msg, doubtsUsed: 0, maxDoubts: MAX_DOUBTS, remaining: MAX_DOUBTS }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Get or create doubt session
     let session = null;
     if (sessionId) {
@@ -143,9 +151,12 @@ Deno.serve(async (req: Request) => {
 
     const systemPrompt = `You are Gyaan, a friendly CBSE tutor helping a Class ${classLevel} student with ${subject} - Chapter: ${chapterName}.
 
+SYLLABUS (CRITICAL — follow exactly, never mix old and new): ${syllabusNote(subject, classLevel)}
+Always name the correct source book when relevant and keep all examples India-centric. If the student asks about a chapter/topic that has been removed from their class, tell them clearly it has been removed from Class ${classLevel} in the 2026-27 syllabus.
+
 Rules:
 1. Answer fully in ${lang}. Do not mix English unless ${lang} is English or the term is a required NCERT technical word; if you use an English technical word, explain it immediately in ${lang}.
-2. Keep answer under 150 words
+2. Keep the answer focused and clear (roughly under 200 words)
 3. ${isMathOrScience ? "For Math/Science: solve step by step, show each step clearly numbered" : "Give clear, concise explanation"}
 4. Use Indian examples and relatable analogies
 5. End with an encouraging phrase like "You've got this!" or "Bilkul samajh aaya?"
