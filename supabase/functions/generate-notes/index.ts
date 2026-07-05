@@ -285,6 +285,18 @@ Deno.serve(async (req: Request) => {
 
     const lang = isAllowed(language || "", ALLOWED_LANGUAGES) ? language : "English";
     const style = studyStyle || "detailed";
+
+    // Reject chapters removed from this class in the 2026-27 syllabus.
+    if (findDeletedChapter(chapterName, classLevel)) {
+      return new Response(
+        JSON.stringify({
+          error: "chapter_removed",
+          message: `This chapter has been removed from Class ${classLevel} in the 2026-27 syllabus. It is now taught in higher classes.`,
+        }),
+        { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const cacheKey = `${classLevel}__${subject}__${chapterName}__${lang}`.toLowerCase().replace(/\s+/g, "_");
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
