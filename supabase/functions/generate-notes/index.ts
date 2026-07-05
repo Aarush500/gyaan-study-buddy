@@ -85,7 +85,9 @@ ${buildSyllabusGuidance(subject, classLevel)}
 
 ================= COVERAGE =================
 - Base everything strictly on the LATEST NCERT textbook for Class ${classLevel} ${subject}. Cover the FULL chapter, nothing skipped.
-- Make it genuinely DETAILED — roughly a 1.5-day read. Each detailedNotes section must be long and self-contained.
+- GO DEEP. Make it genuinely EXHAUSTIVE — a full study companion the student needs no other book for. Each detailedNotes section must be VERY long (at least 5-7 rich paragraphs), self-contained, and elaborate.
+- Do NOT summarize or shorten. Expand every concept with definitions, causes, step-by-step processes, real numbers/dates/names, multiple worked examples, edge cases, and comparisons. Where a topic has sub-topics, explain EACH sub-topic in full — never merge them into one line.
+- Prefer thoroughness over brevity everywhere. If in doubt, write MORE, not less.
 
 ================= HOW TO FILL EACH FIELD (MAP THE STRUCTURE BELOW INTO THE JSON) =================
 - twoLineSummary: Start with a HOOK — a curious question or scenario (e.g. "Ever wondered why you feel lighter in a swimming pool? That's literally today's chapter."). NEVER start with "In this chapter we will learn".
@@ -247,6 +249,7 @@ Deno.serve(async (req: Request) => {
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
+        max_tokens: 32000,
       }),
     });
 
