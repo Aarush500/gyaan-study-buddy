@@ -12,6 +12,14 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const ALLOWED_LANGUAGES = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Marathi"];
 const ALLOWED_CLASS_LEVELS = ["9", "10", "11", "12"];
+const ALLOWED_SUBJECTS = [
+  "Mathematics", "Physics", "Chemistry", "Biology", "Science",
+  "English", "Hindi", "Social Science", "History", "Geography",
+  "Civics", "Economics", "Political Science", "Computer Science",
+  "Accountancy", "Business Studies",
+];
+// Hard server-side cap — never trust a client/DB-provided max_doubts value.
+const MAX_DOUBTS = 15;
 
 function isAllowed(value: string, list: string[]): boolean {
   return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
@@ -56,6 +64,7 @@ Deno.serve(async (req: Request) => {
       typeof subject !== "string" || subject.length > 300 ||
       typeof chapterName !== "string" || chapterName.length > 300 ||
       typeof question !== "string" || question.length > 500 ||
+      !isAllowed(subject, ALLOWED_SUBJECTS) ||
       (classLevel && (typeof classLevel !== "string" || !isAllowed(classLevel, ALLOWED_CLASS_LEVELS))) ||
       (language && (typeof language !== "string" || language.length > 100 || !isAllowed(language, ALLOWED_LANGUAGES)))
     ) {
@@ -93,7 +102,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const doubtsUsed = session?.doubts_used ?? 0;
-    const maxDoubts = session?.max_doubts ?? 15;
+    // Ignore any stored max_doubts — enforce the hard server-side cap only.
+    const maxDoubts = MAX_DOUBTS;
 
     if (doubtsUsed >= maxDoubts) {
       return new Response(JSON.stringify({ error: "Doubt limit reached", doubtsUsed, maxDoubts }), {
@@ -167,7 +177,7 @@ Rules:
           language: lang,
           messages: newMessages,
           doubts_used: 1,
-          max_doubts: maxDoubts,
+          max_doubts: MAX_DOUBTS,
         })
         .select()
         .maybeSingle();
