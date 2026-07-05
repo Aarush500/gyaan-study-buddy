@@ -10,6 +10,17 @@ const corsHeaders = {
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const ALLOWED_SUBJECTS = [
+  "Mathematics", "Physics", "Chemistry", "Biology", "Science",
+  "English", "Hindi", "Social Science", "History", "Geography",
+  "Civics", "Economics", "Political Science", "Computer Science",
+  "Accountancy", "Business Studies",
+];
+const ALLOWED_CLASS_LEVELS = ["9", "10", "11", "12"];
+
+function isAllowed(value: string, list: string[]): boolean {
+  return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -50,7 +61,9 @@ Deno.serve(async (req: Request) => {
       typeof subject !== "string" || subject.length > 300 ||
       typeof chapterName !== "string" || chapterName.length > 300 ||
       typeof classLevel !== "string" || classLevel.length > 10 ||
-      typeof studentNotes !== "string" || studentNotes.length > 10000
+      typeof studentNotes !== "string" || studentNotes.length > 10000 ||
+      !isAllowed(subject, ALLOWED_SUBJECTS) ||
+      !isAllowed(classLevel, ALLOWED_CLASS_LEVELS)
     ) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
