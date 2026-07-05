@@ -25,6 +25,31 @@ function isAllowed(value: string, list: string[]): boolean {
   return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
 }
 
+// Chapters removed from a class in the 2026-27 syllabus.
+const DELETED_CHAPTERS: Record<string, string[]> = { "9": ["gravitation"] };
+function isDeletedChapter(chapterName: string, classLevel: string): boolean {
+  const removed = DELETED_CHAPTERS[String(classLevel)] || [];
+  const name = String(chapterName).toLowerCase();
+  return removed.some((r) => name.includes(r));
+}
+
+// Correct NCERT source per class/subject for the 2026-27 year, so answers cite
+// the right book and syllabus and never mix old and new.
+function syllabusNote(subject: string, classLevel: string): string {
+  const subj = subject.toLowerCase();
+  if (String(classLevel) === "9") {
+    if (subj.includes("math")) return "Class 9 (2026-27) uses the NEW NCF-2023 Maths book 'Ganita Manjari Part 1'. Label topics Proficiency (mandatory) or Advanced (JEE/Olympiad). Never use old Class 9 Maths content.";
+    if (["science", "physics", "chemistry", "biology"].includes(subj)) return "Class 9 (2026-27) uses the NEW book 'Exploration' (integrated Physics/Chemistry/Biology + new Earth Science). Gravitation is REMOVED from Class 9. Label topics Proficiency (all) or Advanced (NEET/JEE). Never use old Class 9 Science content.";
+    if (["social science", "history", "geography", "civics", "political science", "economics"].includes(subj)) return "Class 9 (2026-27) uses the NEW integrated book 'Understanding Society: India and Beyond' (16 themes; History/Geography/Civics/Economics connected). Economics = practical financial literacy. Never use the old 4-book structure.";
+    if (subj === "english") return "Class 9 (2026-27) uses the NEW book 'Kaveri'. Beehive/Moments are gone — never use them.";
+    if (subj === "sanskrit") return "Class 9 (2026-27) uses the NEW book 'Sharda'.";
+    return "Class 9 (2026-27) uses the NEW NCF-2023 books — never use old (pre-2024) Class 9 content.";
+  }
+  if (String(classLevel) === "10" || String(classLevel) === "12") return `Class ${classLevel} uses the EXISTING/OLD NCERT syllabus (no NCF-2023 changes yet).`;
+  if (String(classLevel) === "11") return "Class 11 is transitioning to new books; streams are flexible (students may mix subjects). Don't assume a fixed stream.";
+  return "";
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -77,6 +102,14 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     const lang = isAllowed(language || "", ALLOWED_LANGUAGES) ? language : "English";
 
+    // Chapter removed from this class in the 2026-27 syllabus.
+    if (classLevel && isDeletedChapter(chapterName, classLevel)) {
+      const msg = `This chapter has been removed from Class ${classLevel} in the 2026-27 syllabus. It is now taught in higher classes.`;
+      return new Response(JSON.stringify({ answer: msg, doubtsUsed: 0, maxDoubts: MAX_DOUBTS, remaining: MAX_DOUBTS }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Get or create doubt session
     let session = null;
     if (sessionId) {
@@ -118,9 +151,12 @@ Deno.serve(async (req: Request) => {
 
     const systemPrompt = `You are Gyaan, a friendly CBSE tutor helping a Class ${classLevel} student with ${subject} - Chapter: ${chapterName}.
 
+SYLLABUS (CRITICAL — follow exactly, never mix old and new): ${syllabusNote(subject, classLevel)}
+Always name the correct source book when relevant and keep all examples India-centric. If the student asks about a chapter/topic that has been removed from their class, tell them clearly it has been removed from Class ${classLevel} in the 2026-27 syllabus.
+
 Rules:
 1. Answer fully in ${lang}. Do not mix English unless ${lang} is English or the term is a required NCERT technical word; if you use an English technical word, explain it immediately in ${lang}.
-2. Keep answer under 150 words
+2. Keep the answer focused and clear (roughly under 200 words)
 3. ${isMathOrScience ? "For Math/Science: solve step by step, show each step clearly numbered" : "Give clear, concise explanation"}
 4. Use Indian examples and relatable analogies
 5. End with an encouraging phrase like "You've got this!" or "Bilkul samajh aaya?"

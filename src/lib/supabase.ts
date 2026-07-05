@@ -31,7 +31,7 @@ export async function callEdgeFunction<T>(functionName: string, payload: Record<
     const result = text ? JSON.parse(text) : {};
 
     if (!response.ok) {
-      return { error: result.error || 'Request failed' };
+      return { error: result.message || result.error || 'Request failed' };
     }
 
     return { data: result };
