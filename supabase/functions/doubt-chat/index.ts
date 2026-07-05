@@ -25,6 +25,31 @@ function isAllowed(value: string, list: string[]): boolean {
   return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
 }
 
+// Chapters removed from a class in the 2026-27 syllabus.
+const DELETED_CHAPTERS: Record<string, string[]> = { "9": ["gravitation"] };
+function isDeletedChapter(chapterName: string, classLevel: string): boolean {
+  const removed = DELETED_CHAPTERS[String(classLevel)] || [];
+  const name = String(chapterName).toLowerCase();
+  return removed.some((r) => name.includes(r));
+}
+
+// Correct NCERT source per class/subject for the 2026-27 year, so answers cite
+// the right book and syllabus and never mix old and new.
+function syllabusNote(subject: string, classLevel: string): string {
+  const subj = subject.toLowerCase();
+  if (String(classLevel) === "9") {
+    if (subj.includes("math")) return "Class 9 (2026-27) uses the NEW NCF-2023 Maths book 'Ganita Manjari Part 1'. Label topics Proficiency (mandatory) or Advanced (JEE/Olympiad). Never use old Class 9 Maths content.";
+    if (["science", "physics", "chemistry", "biology"].includes(subj)) return "Class 9 (2026-27) uses the NEW book 'Exploration' (integrated Physics/Chemistry/Biology + new Earth Science). Gravitation is REMOVED from Class 9. Label topics Proficiency (all) or Advanced (NEET/JEE). Never use old Class 9 Science content.";
+    if (["social science", "history", "geography", "civics", "political science", "economics"].includes(subj)) return "Class 9 (2026-27) uses the NEW integrated book 'Understanding Society: India and Beyond' (16 themes; History/Geography/Civics/Economics connected). Economics = practical financial literacy. Never use the old 4-book structure.";
+    if (subj === "english") return "Class 9 (2026-27) uses the NEW book 'Kaveri'. Beehive/Moments are gone — never use them.";
+    if (subj === "sanskrit") return "Class 9 (2026-27) uses the NEW book 'Sharda'.";
+    return "Class 9 (2026-27) uses the NEW NCF-2023 books — never use old (pre-2024) Class 9 content.";
+  }
+  if (String(classLevel) === "10" || String(classLevel) === "12") return `Class ${classLevel} uses the EXISTING/OLD NCERT syllabus (no NCF-2023 changes yet).`;
+  if (String(classLevel) === "11") return "Class 11 is transitioning to new books; streams are flexible (students may mix subjects). Don't assume a fixed stream.";
+  return "";
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
