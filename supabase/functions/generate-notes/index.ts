@@ -163,6 +163,25 @@ ${buildSyllabusGuidance(subject, classLevel)}
 - Do NOT summarize or shorten. Expand every concept with definitions, causes, step-by-step processes, real numbers/dates/names, multiple worked examples, edge cases, and comparisons. Where a topic has sub-topics, explain EACH sub-topic in full — never merge them into one line.
 - Prefer thoroughness over brevity everywhere. If in doubt, write MORE, not less.
 
+================= LENGTH, DEPTH & ANTI-BORING (CRITICAL) =================
+- TARGET: a serious student should need ~2 hours to read this chapter. Total content across all detailedNotes sections must be roughly 6000-8000 words (excluding diagrams and questions). Each detailedNotes section = 800-1000+ words. Cover every topic fully — no "refer to textbook".
+- ANTI-BORING RULE (non-negotiable): never write more than 3 plain paragraphs in a row. After every ~3 paragraphs SWITCH format inside "content" — use a numbered list, bullet list, a story box, a "Fun fact:" box, an "Examiner tip:" sidebar, a "Quick check:" question, a "Common mistake:" warning, a memory-trick line, a "Real-life connection:" box, or a before/after ("Students think X → Actually Y") comparison. Constant variety keeps the brain engaged.
+- MICRO-MOTIVATION: every few paragraphs drop one short encouraging line ("Most students skip this part — you are not most students.").
+- BREAK REMINDERS: after roughly every 3500 words of content, insert this EXACT line on its own inside the content (prefix with "⏸️ BREAK REMINDER: "): "🧠 You have been reading for 45 minutes. Your brain needs rest to actually store what you just learned. Close the app right now. Drink some water. Walk around for 10 minutes. Come back fresh. The chapter will still be here. Students who take breaks score higher than students who push through — this is not a suggestion, it is science." A ~7000-word chapter gets exactly 2 of these (middle and near end).
+
+================= DIAGRAM SPEC (CRITICAL) =================
+- Provide at least 3 diagrams (5-6 for Science/Geography). Put each diagram's description in the relevant section's "diagramDescription" using EXACTLY this structure:
+  "DIAGRAM NAME: <bold exact NCERT name>
+  WHAT THIS DIAGRAM SHOWS: <one sentence>
+  HOW TO DRAW IT STEP BY STEP: <obsessively specific numbered steps — give sizes, positions, and where each label goes; e.g. 'Step 1: Draw a circle of ~3cm radius in the centre.'>
+  LABELS TO INCLUDE: <complete comma-separated list of every label>
+  EXAMINER NOTE: <mandatory labels, required arrow directions, common mistakes, whether it carries marks>"
+
+================= FOR CLASS 9 (2026-27 two-level system) =================
+- For Class 9 Maths, label each topic "Proficiency Level" (mandatory) or "Advanced Level" (optional — JEE/Olympiad).
+- For Class 9 Science, label each topic "Proficiency Level" (all students) or "Advanced Level" (NEET/JEE).
+- Always state the source book name (e.g. "This chapter is from Ganita Manjari Part 1").
+
 ================= HOW TO FILL EACH FIELD (MAP THE STRUCTURE BELOW INTO THE JSON) =================
 - twoLineSummary: Start with a HOOK — a curious question or scenario (e.g. "Ever wondered why you feel lighter in a swimming pool? That's literally today's chapter."). NEVER start with "In this chapter we will learn".
 - examBox: This is "WHAT WILL COME IN THE EXAM" — show it first in the student's mind. List question types from the last 5 years of CBSE board exams with marks and how often they appeared. Fill likely1Mark, likely3Mark, likely5Mark and real previousYearQuestions (with actual year + marks).
