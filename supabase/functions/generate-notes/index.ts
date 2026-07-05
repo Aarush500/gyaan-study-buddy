@@ -25,6 +25,44 @@ function isAllowed(value: string, list: string[]): boolean {
   return list.some((v) => v.toLowerCase() === String(value).toLowerCase());
 }
 
+// Server-side paywall enforcement: only the overview (summary + key points) is
+// free. Everything else is stripped unless the user holds a valid unlock for
+// this exact chapter. This can never be bypassed from the client.
+function gateNotes(notes: any, isUnlocked: boolean) {
+  if (isUnlocked || !notes || typeof notes !== "object") return notes;
+  return {
+    ...notes,
+    detailedNotes: [],
+    examBox: undefined,
+    mcqs: [],
+    commonMistakes: [],
+    shortAnswerQuestions: [],
+    quickRevision: [],
+    locked: true,
+  };
+}
+
+async function isChapterUnlocked(
+  supabase: any,
+  userId: string,
+  subject: string,
+  chapterName: string,
+  classLevel: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("unlocked_chapters")
+    .select("valid_until, is_free")
+    .eq("user_id", userId)
+    .eq("subject", subject)
+    .eq("chapter_name", chapterName)
+    .eq("class_level", classLevel)
+    .maybeSingle();
+  if (!data) return false;
+  if (data.is_free) return true;
+  if (!data.valid_until) return false;
+  return new Date(data.valid_until).getTime() > Date.now();
+}
+
 // Class 9 (2024+ revised NCERT) uses new textbooks and a refreshed syllabus.
 // Anchor the AI to the correct book + maximum-depth coverage for Class 9.
 function buildSyllabusGuidance(subject: string, classLevel: string): string {
