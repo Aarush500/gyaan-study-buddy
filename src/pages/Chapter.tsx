@@ -174,12 +174,7 @@ export default function Chapter() {
   if (loading) {
     return (
       <div className="min-h-screen app-bg">
-        <div className="max-w-7xl mx-auto px-4 py-8 space-y-4">
-          <Skeleton className="h-10 w-2/3" />
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-60 w-full" />
-        </div>
+        <ChapterSkeleton />
       </div>
     );
   }
