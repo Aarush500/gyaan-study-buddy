@@ -12,6 +12,7 @@ import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { getExams } from '@/lib/exams';
 import { pushNotification } from '@/lib/notifications';
 import { Flame, BookOpen, MessageCircleQuestion, FileCheck, Settings, LogOut } from 'lucide-react';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
@@ -40,6 +41,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen app-bg">
+      {!profile ? (
+        <DashboardSkeleton />
+      ) : (
+      <>
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -96,6 +101,8 @@ export default function Dashboard() {
 
         <RecentChapters />
       </main>
+      </>
+      )}
     </div>
   );
 }
