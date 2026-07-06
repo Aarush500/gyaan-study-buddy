@@ -1,36 +1,50 @@
-Plan to make the app stable and usable:
+# Making Gyaan feel smooth & premium
 
-1. Fix Google sign-in end-to-end
-- Reconfigure managed Google authentication for Lovable Cloud.
-- Update the Google sign-in flow so it uses Lovable Cloud auth correctly and does not manually break the session.
-- After Google login, ensure the app creates/fills a user profile if one does not exist, then redirects to the dashboard.
-- Keep email/password login working.
+Already done: removed the "हिंदी में भी।" line from the landing hero.
 
-2. Stop the preview from getting stuck or blank
-- Add a safe app-level fallback so auth/profile/database errors show a clear screen instead of crashing the preview.
-- Harden auth loading so it always finishes, even if profile creation/fetch fails.
-- Guard backend calls when env/session values are missing so pages do not crash during preview reloads.
-- Verify `/`, `/login`, `/signup`, and `/dashboard` render without console errors.
+This is a large spec. To keep quality high and avoid breaking the working app, I'll build it in ordered phases. Each phase is independently shippable. Tell me if you want to reorder or drop any.
 
-3. Fix language support properly
-- Standardize the app to exactly 6 supported study languages: English, Hindi, Tamil, Telugu, Kannada, Marathi.
-- Add language selection during signup/profile creation.
-- Store the selected language on the user profile.
-- Pass the selected language to chapter generation and doubt chat.
-- Strengthen Gemini prompts so the generated notes and doubt answers are written fully in the selected language, not just lightly translated.
+## Phase 1 — Motion & loading foundation
+The building blocks everything else reuses.
+- Add `framer-motion` for transitions and micro-interactions.
+- Global page-transition wrapper: slide-in-from-right on forward nav, slide-out-right on back, 250–300ms. Modals fade + scale 95→100%; bottom sheets spring up / slide down.
+- Reusable animated primitives: pressable button (scale 97% on press), tappable card (bg change on press), animated progress bar (0→value over 600ms ease-out), pop-in badges.
+- Shimmer skeleton system (left-to-right shimmer, not a spinner) with ready-made skeletons for: dashboard (greeting, metrics, subject cards, notes list) and chapter (title, tags, summary, key points).
+- "Cooking up your notes" AI generation screen: smooth progress bar + rotating messages every 3s.
 
-4. Make profile creation reliable for all auth methods
-- Email signup will create a profile with name, class, and language.
-- Google signup/login will auto-create a default profile from the Google account if missing.
-- Defaults will stay Class 9 + English if the user has not chosen yet.
+## Phase 2 — Auth polish
+- Landing/login shows two options only: large "Continue with Google" (official logo, white bg, subtle border) first, then "Continue with Email".
+- One-tap Google via the existing Lovable auth helper; auto-route new users → onboarding, returning users → dashboard, no interstitial.
+- Top progress indicator if auth > 2s (non-blocking); friendly error + retry on failure.
 
-5. Validate after implementation
-- Test the public pages and protected redirect flow.
-- Test login/signup screen buttons.
-- Test Google button behavior as far as the preview environment allows.
-- Check for console/runtime errors after the changes.
+## Phase 3 — Onboarding polish
+- Spring-animated progress bar, steps slide in from right / out on back.
+- Subject cards: tap pulse; strong→green / weak→orange smooth color transition.
+- Summary step: staggered fade-in (name, level, language, subjects, 100ms apart).
+- "Start learning" inline spinner while saving, then smooth transition to dashboard.
 
-Technical details:
-- I will not edit auto-generated backend client files.
-- I will avoid changing OAuth redirect URLs to protected routes.
-- If the preview environment itself blocks OAuth popups/fetches, the code will still fail gracefully instead of blanking the app, and the published app flow will use the correct managed Google auth path.
+## Phase 4 — Content generation UX
+- Always show free section instantly; skeleton for the locked section while generating; skeleton fades out / real content fades in.
+- On generation failure: show free section + "AI is preparing this chapter — check back in 2 minutes" (pulsing), no error page.
+- Ensure caching: never regenerate an existing chapter (verify current cache logic).
+
+## Phase 5 — Payment flow polish
+- Unlock bottom sheet slides up; "Opening payment..." inline state; Razorpay opens on top of the chapter (no navigation away).
+- Success: sheet slides down, lock overlay 400ms fade-out, content 500ms fade-in, top success toast auto-dismiss 3s.
+- Failure: friendly bottom sheet with retry + WhatsApp (8553012007). Payment-verified-but-error message with WhatsApp recourse.
+
+## Phase 6 — Profile page (new)
+Reachable from bottom nav. Sections: profile (inline name edit, Google picture, class/board), study preferences (language / study style / class-board change with reset warning), subject preferences (inline strong/weak/neutral picker, live dashboard reorder), purchase history (from `unlocked_chapters`, newest first, total spent, re-open button, empty state), account (sign out confirm, delete account with typed "DELETE", privacy/terms links), notification preferences (toggles saved to backend).
+
+## Phase 7 — Error handling & performance
+- try/catch on every API call; friendly Supabase/Gemini fallbacks; offline banner with readable cached content.
+- React Query stale-while-revalidate for all fetching; prefetch next chapter while reading + dashboard on app open; optimize image/icon assets.
+
+## Phase 8 — Micro-interactions
+- Streak fire pulse (3s), chapter-complete confetti (1.5s), streak bounce-up, unlock lock shake+rotate, animated progress bars, pop-in badges, smooth bottom-nav sliding indicator, logo taps do nothing.
+
+## Notes
+- Backend touches are minimal: profile updates, notification preferences (may need columns), purchase history reads — all scoped per authenticated user with RLS.
+- I recommend building Phase 1 first, then confirming feel before layering the rest.
+
+Want me to start with Phase 1, or reprioritize?
