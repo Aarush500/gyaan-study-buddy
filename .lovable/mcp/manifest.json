@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "gyaan-mcp",
+      "version": "0.1.0",
+      "title": "Gyaan MCP"
+    },
+    "tools": [
+      {
+        "name": "get_syllabus_info",
+        "title": "Get syllabus info",
+        "description": "Return the correct 2026-27 NCERT syllabus note (book names, key changes) for a CBSE class and subject.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "classLevel": {
+              "type": "string",
+              "enum": [
+                "9",
+                "10",
+                "11",
+                "12"
+              ],
+              "description": "CBSE class level."
+            },
+            "subject": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Subject name, e.g. Mathematics, Science, English."
+            }
+          },
+          "required": [
+            "classLevel",
+            "subject"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_supported_subjects",
+        "title": "List supported subjects",
+        "description": "List the CBSE class levels and subjects that Gyaan supports.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      }
+    ]
+  }
+}
