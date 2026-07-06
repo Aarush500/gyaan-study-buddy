@@ -20,10 +20,6 @@ const Hero = () => {
               Score more.
               <br />
               <span className="text-primary">Study less.</span>
-              <br />
-              <span className="italic font-medium text-muted-foreground text-3xl md:text-5xl">
-                हिंदी में भी।
-              </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted-foreground">
               AI-powered CBSE notes personalised to your weak subjects. Pay
