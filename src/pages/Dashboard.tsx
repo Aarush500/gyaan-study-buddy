@@ -12,7 +12,7 @@ import { AttendanceCard } from '@/components/dashboard/AttendanceCard';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { getExams } from '@/lib/exams';
 import { pushNotification } from '@/lib/notifications';
-import { MessageCircleQuestion, FileCheck, LogOut, User } from 'lucide-react';
+import { MessageCircleQuestion, FileCheck, LogOut } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 export default function Dashboard() {
@@ -71,11 +71,8 @@ export default function Dashboard() {
           </Link>
           <div className="flex items-center gap-1.5">
             <NotificationBell />
-            <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary-soft">
-              <Link to="/profile"><User className="w-4 h-4 mr-1.5" />Profile</Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={signOut} className="border-primary text-primary hover:bg-primary-soft">
+              <LogOut className="w-4 h-4 mr-1.5" />Sign Out
             </Button>
           </div>
         </div>
