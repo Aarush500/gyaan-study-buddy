@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Lock, BookOpen } from 'lucide-react';
 
@@ -13,107 +12,103 @@ interface Chapter {
   isFree: boolean;
 }
 
-const CHAPTERS_BY_SUBJECT: Record<string, Chapter[]> = {
-  Physics: [
-    { name: 'Motion', number: 1, isFree: true },
-    { name: 'Force and Laws of Motion', number: 2, isFree: true },
-    { name: 'Gravitation', number: 3, isFree: false },
-    { name: 'Work and Energy', number: 4, isFree: false },
-    { name: 'Sound', number: 5, isFree: false },
-    { name: 'Electricity', number: 6, isFree: false },
-    { name: 'Light - Reflection and Refraction', number: 7, isFree: false },
-    { name: 'Magnetic Effects of Electric Current', number: 8, isFree: false },
-  ],
-  Chemistry: [
-    { name: 'Chemical Reactions and Equations', number: 1, isFree: true },
-    { name: 'Acids, Bases and Salts', number: 2, isFree: true },
-    { name: 'Metals and Non-metals', number: 3, isFree: false },
-    { name: 'Carbon and its Compounds', number: 4, isFree: false },
-    { name: 'Periodic Classification of Elements', number: 5, isFree: false },
-  ],
-  Mathematics: [
-    { name: 'Real Numbers', number: 1, isFree: true },
-    { name: 'Polynomials', number: 2, isFree: true },
-    { name: 'Pair of Linear Equations', number: 3, isFree: false },
-    { name: 'Quadratic Equations', number: 4, isFree: false },
-    { name: 'Arithmetic Progressions', number: 5, isFree: false },
-    { name: 'Triangles', number: 6, isFree: false },
-    { name: 'Coordinate Geometry', number: 7, isFree: false },
-    { name: 'Trigonometry', number: 8, isFree: false },
-    { name: 'Applications of Trigonometry', number: 9, isFree: false },
-    { name: 'Circles', number: 10, isFree: false },
-    { name: 'Areas Related to Circles', number: 11, isFree: false },
-    { name: 'Surface Areas and Volumes', number: 12, isFree: false },
-    { name: 'Statistics', number: 13, isFree: false },
-    { name: 'Probability', number: 14, isFree: false },
-  ],
-  Biology: [
-    { name: 'Life Processes', number: 1, isFree: true },
-    { name: 'Control and Coordination', number: 2, isFree: true },
-    { name: 'How do Organisms Reproduce', number: 3, isFree: false },
-    { name: 'Heredity and Evolution', number: 4, isFree: false },
-    { name: 'Our Environment', number: 5, isFree: false },
-    { name: 'Management of Natural Resources', number: 6, isFree: false },
-  ],
-  English: [
-    { name: 'A Letter to God', number: 1, isFree: true },
-    { name: 'Nelson Mandela', number: 2, isFree: true },
-    { name: 'Two Stories about Flying', number: 3, isFree: false },
-    { name: 'From the Diary of Anne Frank', number: 4, isFree: false },
-    { name: 'The Hundred Dresses - I', number: 5, isFree: false },
-    { name: 'The Hundred Dresses - II', number: 6, isFree: false },
-    { name: 'Glimpses of India', number: 7, isFree: false },
-    { name: 'Mijbil the Otter', number: 8, isFree: false },
-  ],
-  'Social Science': [
-    { name: 'The Rise of Nationalism in Europe', number: 1, isFree: true },
-    { name: 'Nationalism in India', number: 2, isFree: true },
-    { name: 'The Making of a Global World', number: 3, isFree: false },
-    { name: 'Resources and Development', number: 4, isFree: false },
-    { name: 'Forest and Wildlife Resources', number: 5, isFree: false },
-    { name: 'Water Resources', number: 6, isFree: false },
-    { name: 'Power Sharing', number: 7, isFree: false },
-    { name: 'Federalism', number: 8, isFree: false },
-    { name: 'Development', number: 9, isFree: false },
-    { name: 'Money and Credit', number: 10, isFree: false },
-  ],
-  Hindi: [
-    { name: 'Surdas ke Pad', number: 1, isFree: true },
-    { name: 'Ram-Lakshman-Parshuram Samvad', number: 2, isFree: true },
-    { name: 'Avinash w - Saphalta Ki Raah', number: 3, isFree: false },
-    { name: 'Topi Shukla', number: 4, isFree: false },
-    { name: 'Atithi Devo Bhava', number: 5, isFree: false },
-  ],
-  'Computer Science': [
-    { name: 'Introduction to Programming', number: 1, isFree: true },
-    { name: 'Functions and Recursion', number: 2, isFree: true },
-    { name: 'Data Structures', number: 3, isFree: false },
-    { name: 'Object Oriented Programming', number: 4, isFree: false },
-    { name: 'File Handling', number: 5, isFree: false },
-    { name: 'Database Management', number: 6, isFree: false },
-  ],
+const mk = (names: string[]): Chapter[] =>
+  names.map((name, i) => ({ name, number: i + 1, isFree: i < 2 }));
+
+// Correct NCERT syllabus per class (2026-27)
+const SYLLABUS: Record<string, Record<string, Chapter[]>> = {
+  '9': {
+    Mathematics: mk([
+      'Number Systems', 'Polynomials Part 1', 'Polynomials Part 2', 'Coordinate Geometry',
+      'Linear Equations in Two Variables', "Introduction to Euclid's Geometry", 'Lines and Angles',
+      'Triangles', 'Quadrilaterals', 'Circles', "Heron's Formula", 'Surface Areas and Volumes',
+      'Statistics', 'Arithmetic Progressions', 'Pair of Linear Equations', 'Geometric Progression',
+    ]),
+    Science: mk([
+      'Matter in Our Surroundings', 'Is Matter Around Us Pure', 'Atoms and Molecules',
+      'Structure of the Atom', 'The Fundamental Unit of Life', 'Tissues', 'Motion',
+      'Force and Laws of Motion', 'Work and Energy', 'Sound', 'Why Do We Fall Ill',
+      'Natural Resources', 'Earth Science: Natural Cycles and Earth Systems',
+      'Earth Science: Environmental Balance and Radiation',
+    ]),
+    'Social Science': mk([
+      'Early Human Civilisations and India', 'Ancient Indian Civilisations (Harappan Culture)',
+      'Bhakti and Sufi Traditions', 'Medieval India', 'Colonial India and Resistance',
+      'Physical Features of India', 'Climate and Natural Vegetation', 'Plate Tectonics',
+      'Interior and Composition of Earth', 'Ocean Relief and Biomes', 'Democracy and Elections',
+      'Justice and Authority', 'Indian Economy and Financial Literacy',
+      'Budgeting and Personal Finance', 'Entrepreneurship and Investment Basics',
+      'India in the Global World',
+    ]),
+    English: mk([
+      'Kaveri: Prose 1', 'Kaveri: Poetry 1', 'Kaveri: Prose 2', 'Kaveri: Poetry 2',
+      'Persuasive Essays', 'Literary Analysis', 'Research Writing', 'Creative Writing',
+    ]),
+    Sanskrit: mk([
+      'Sharda: Prose', 'Sharda: Poetry', 'Grammar: Tatpurusha Samas', 'Grammar: Avyaya',
+      'Dialogue Completion', 'Story Completion',
+    ]),
+  },
+  '10': {
+    Mathematics: mk([
+      'Real Numbers', 'Polynomials', 'Pair of Linear Equations in Two Variables',
+      'Quadratic Equations', 'Arithmetic Progressions', 'Triangles', 'Coordinate Geometry',
+      'Introduction to Trigonometry', 'Some Applications of Trigonometry', 'Circles',
+      'Areas Related to Circles', 'Surface Areas and Volumes', 'Statistics', 'Probability',
+    ]),
+    Science: mk([
+      'Chemical Reactions and Equations', 'Acids Bases and Salts', 'Metals and Non-metals',
+      'Carbon and its Compounds', 'Life Processes', 'Control and Coordination',
+      'How do Organisms Reproduce', 'Heredity', 'Light Reflection and Refraction',
+      'Human Eye and Colourful World', 'Electricity', 'Magnetic Effects of Electric Current',
+      'Our Environment',
+    ]),
+    'Social Science': mk([
+      'The Rise of Nationalism in Europe', 'Nationalism in India', 'The Making of a Global World',
+      'The Age of Industrialisation', 'Print Culture and the Modern World',
+      'Resources and Development', 'Forest and Wildlife Resources', 'Water Resources',
+      'Agriculture', 'Minerals and Energy Resources', 'Manufacturing Industries',
+      'Lifelines of National Economy', 'Power Sharing', 'Federalism', 'Democracy and Diversity',
+      'Gender Religion and Caste', 'Political Parties', 'Outcomes of Democracy',
+      'Challenges to Democracy', 'Development', 'Sectors of the Indian Economy',
+      'Money and Credit', 'Globalisation and the Indian Economy', 'Consumer Rights',
+    ]),
+    English: mk([
+      'A Letter to God', 'Nelson Mandela', 'Two Stories about Flying',
+      'From the Diary of Anne Frank', 'The Hundred Dresses I', 'The Hundred Dresses II',
+      'Glimpses of India', 'Mijbil the Otter', 'Madam Rides the Bus', 'The Sermon at Benares',
+      'The Proposal',
+    ]),
+  },
 };
 
-const SUBJECT_COLORS: Record<string, string> = {
-  Physics: 'from-blue-500 to-blue-600',
-  Chemistry: 'from-green-500 to-green-600',
-  Mathematics: 'from-purple-500 to-purple-600',
-  Biology: 'from-teal-500 to-teal-600',
-  English: 'from-amber-500 to-amber-600',
-  'Social Science': 'from-red-500 to-red-600',
-  Hindi: 'from-orange-500 to-orange-600',
-  'Computer Science': 'from-cyan-500 to-cyan-600',
+// Legacy separate-science subjects map to the integrated Science book
+const SCIENCE_ALIASES = ['Physics', 'Chemistry', 'Biology'];
+
+const SUBJECT_ACCENT: Record<string, string> = {
+  Physics: 'border-l-blue-500',
+  Chemistry: 'border-l-green-500',
+  Science: 'border-l-emerald-500',
+  Mathematics: 'border-l-primary',
+  Biology: 'border-l-teal-500',
+  English: 'border-l-amber-500',
+  'Social Science': 'border-l-rose-500',
+  Hindi: 'border-l-orange-500',
+  Sanskrit: 'border-l-orange-500',
+  'Computer Science': 'border-l-cyan-500',
 };
 
-const SUBJECT_ICONS: Record<string, string> = {
-  Physics: 'Atom',
-  Chemistry: 'FlaskConical',
-  Mathematics: 'Calculator',
-  Biology: 'Leaf',
-  English: 'BookOpen',
-  'Social Science': 'Globe',
-  Hindi: 'Languages',
-  'Computer Science': 'Monitor',
+const SUBJECT_ICON_BG: Record<string, string> = {
+  Physics: 'bg-blue-500',
+  Chemistry: 'bg-green-500',
+  Science: 'bg-emerald-500',
+  Mathematics: 'bg-primary',
+  Biology: 'bg-teal-500',
+  English: 'bg-amber-500',
+  'Social Science': 'bg-rose-500',
+  Hindi: 'bg-orange-500',
+  Sanskrit: 'bg-orange-500',
+  'Computer Science': 'bg-cyan-500',
 };
 
 export default function Subject() {
@@ -121,17 +116,26 @@ export default function Subject() {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  const subjectName = subjectId || 'Physics';
-  const chapters = CHAPTERS_BY_SUBJECT[subjectName] || [];
-  const gradient = SUBJECT_COLORS[subjectName] || 'from-gray-500 to-gray-600';
+  const subjectName = subjectId || 'Science';
+  const classLevel = profile?.class_level || '10';
+
+  const classSyllabus = SYLLABUS[classLevel] || SYLLABUS['10'];
+  let lookup = subjectName;
+  // Class 9 integrated Science: legacy Physics/Chemistry/Biology -> Science
+  if (classLevel === '9' && SCIENCE_ALIASES.includes(subjectName)) lookup = 'Science';
+  const chapters = classSyllabus[lookup] || classSyllabus[subjectName] || [];
+
+  const accent = SUBJECT_ACCENT[lookup] || 'border-l-primary';
+  const iconBg = SUBJECT_ICON_BG[lookup] || 'bg-primary';
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 500);
+    const t = setTimeout(() => setLoading(false), 400);
+    return () => clearTimeout(t);
   }, []);
 
   return (
     <div className="min-h-screen app-bg">
-      <header className="bg-white border-b sticky top-0 z-50">
+      <header className="bg-card/80 backdrop-blur border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <Link to="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -141,20 +145,25 @@ export default function Subject() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className={`bg-gradient-to-r ${gradient} rounded-2xl p-8 mb-8 text-white`}>
-          <h1 className="text-3xl font-bold mb-2">{subjectName}</h1>
-          <p className="opacity-90">Class {profile?.class_level || '10'} CBSE</p>
-          <p className="text-sm opacity-75 mt-2">{chapters.length} chapters available</p>
+        {/* Clean header — no solid colour banner */}
+        <div className="mb-8">
+          <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+            {lookup === 'Science' && SCIENCE_ALIASES.includes(subjectName) ? subjectName : subjectName}
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Class {classLevel} CBSE {classLevel === '9' ? '· 2026-27 NCERT' : ''}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">{chapters.length} chapters available</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-6 w-20" />
-                    <Skeleton className="h-4 w-32" />
-                  </CardHeader>
+                <Card key={i} className="border-l-4 border-l-muted">
+                  <CardContent className="pt-6 space-y-3">
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-4 w-40" />
+                  </CardContent>
                 </Card>
               ))
             : chapters.map(chapter => (
@@ -163,27 +172,24 @@ export default function Subject() {
                   to={`/subject/${subjectId}/${encodeURIComponent(chapter.name)}`}
                   className="block"
                 >
-                  <Card className="hover:shadow-lg transition-all hover:border-emerald-200 cursor-pointer h-full relative overflow-hidden">
-                    {chapter.isFree && (
-                      <Badge className="absolute top-3 right-3 bg-emerald-500">Free</Badge>
-                    )}
-                    {!chapter.isFree && (
-                      <div className="absolute top-3 right-3">
-                        <Lock className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center text-white font-bold text-sm`}>
+                  <Card className={`bg-card hover:shadow-lg transition-all cursor-pointer h-full relative border-l-4 ${accent} rounded-xl`}>
+                    <CardContent className="pt-5 pb-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-9 h-9 ${iconBg} rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0`}>
                           {chapter.number}
                         </div>
-                        <div>
-                          <CardTitle className="text-lg">{chapter.name}</CardTitle>
-                          <CardDescription>Chapter {chapter.number}</CardDescription>
-                        </div>
+                        {chapter.isFree ? (
+                          <Badge className="bg-strong text-strong-foreground hover:bg-strong">FREE</Badge>
+                        ) : (
+                          <Lock className="w-4 h-4 text-muted-foreground mt-1" />
+                        )}
                       </div>
-                    </CardHeader>
-                    <CardContent>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                        {subjectName}
+                      </p>
+                      <h3 className="font-semibold text-base leading-snug text-foreground mb-3">
+                        {chapter.name}
+                      </h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <BookOpen className="w-4 h-4" />
                         <span>View Notes</span>
@@ -193,6 +199,12 @@ export default function Subject() {
                 </Link>
               ))}
         </div>
+
+        {chapters.length === 0 && !loading && (
+          <p className="text-center text-muted-foreground py-12">
+            No chapters found for {subjectName} in Class {classLevel}.
+          </p>
+        )}
       </main>
     </div>
   );
