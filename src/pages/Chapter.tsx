@@ -22,10 +22,12 @@ import {
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
 import { Model3D, pickModel } from '@/components/learn/Model3D';
+import { useT } from '@/lib/i18n';
 
 export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
   const { profile, user } = useAuth();
+  const { t } = useT();
   const [notes, setNotes] = useState<ChapterNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
