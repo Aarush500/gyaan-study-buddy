@@ -22,10 +22,12 @@ import {
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
 import { Model3D, pickModel } from '@/components/learn/Model3D';
+import { useT } from '@/lib/i18n';
 
 export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
   const { profile, user } = useAuth();
+  const { t } = useT();
   const [notes, setNotes] = useState<ChapterNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,9 +188,9 @@ export default function Chapter() {
         <Card className="max-w-md glass-strong">
           <CardContent className="pt-6 text-center">
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Failed to load notes</h2>
+            <h2 className="text-xl font-bold mb-2">{t('failedToLoad')}</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button className="glass-btn text-primary-foreground" onClick={() => window.location.reload()}>Try Again</Button>
+            <Button className="glass-btn text-primary-foreground" onClick={() => window.location.reload()}>{t('tryAgain')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -226,7 +228,7 @@ export default function Chapter() {
       <header className="glass sticky top-0 z-50 border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link to={`/subject/${subjectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('back')}
           </Link>
           <div className="flex items-center gap-2">
             {unlocked && expiryDays != null && (
@@ -234,7 +236,7 @@ export default function Chapter() {
             )}
             <Button variant="outline" size="sm" className="glass" onClick={() => fetchNotes(true)} disabled={refreshing} title="Regenerate with the latest NCERT syllabus">
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline ml-2">Latest NCERT</span>
+              <span className="hidden sm:inline ml-2">{t('latestNcert')}</span>
             </Button>
             <Sheet>
               <SheetTrigger asChild>
@@ -243,13 +245,13 @@ export default function Chapter() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="app-bg w-80">
-                <div className="mt-6 mb-3 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> Topics</div>
+                <div className="mt-6 mb-3 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
                 {Sidebar}
               </SheetContent>
             </Sheet>
             <Link to={`/doubt/${subjectId}/${chapterId}`}>
               <Button size="sm" className="glass-btn text-primary-foreground">
-                <MessageCircleQuestion className="w-4 h-4 mr-2" /> Doubt
+                <MessageCircleQuestion className="w-4 h-4 mr-2" /> {t('askDoubt')}
               </Button>
             </Link>
           </div>
@@ -259,7 +261,7 @@ export default function Chapter() {
       <div className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-[260px_1fr] gap-6">
         <aside className="hidden lg:block">
           <div className="glass rounded-2xl p-3 sticky top-20">
-            <div className="px-2 pb-2 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> Topics</div>
+            <div className="px-2 pb-2 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
             <div className="px-2 pb-3">
               <Progress value={progressPct} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">{completed.size}/{topics.length} done • {progressPct}%</p>
@@ -311,12 +313,12 @@ export default function Chapter() {
                       <div className="mx-auto w-12 h-12 rounded-full glass grid place-items-center mb-3">
                         <Lock className="w-5 h-5 text-primary" />
                       </div>
-                      <div className="font-display text-xl font-extrabold">Unlock this chapter</div>
-                      <div className="text-sm text-muted-foreground mt-1">First topic is free. Unlock the rest.</div>
+                      <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
+                      <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
                       <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
                       <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid till 30 Apr</div>
                       <Button className="w-full mt-4 glass-btn text-primary-foreground h-11" onClick={handleUnlock}>
-                        Unlock for ₹39
+                        {t('unlockFor')}
                       </Button>
                     </div>
                   </div>
@@ -325,16 +327,16 @@ export default function Chapter() {
 
               <div className="flex items-center justify-between mt-8 pt-4 border-t border-border/40">
                 <Button variant="outline" className="glass" disabled={current === 0} onClick={() => goTo(current - 1)}>
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Previous
+                  <ArrowLeft className="w-4 h-4 mr-2" /> {t('previous')}
                 </Button>
                 <span className="text-xs text-muted-foreground">{current + 1} / {topics.length}</span>
                 {current < topics.length - 1 ? (
                   <Button className="glass-btn text-primary-foreground" onClick={() => goTo(current + 1)}>
-                    Next topic <ArrowRight className="w-4 h-4 ml-2" />
+                    {t('nextTopic')} <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
                   <Button className="glass-btn text-primary-foreground" disabled>
-                    <CheckCircle className="w-4 h-4 mr-2" /> Chapter done
+                    <CheckCircle className="w-4 h-4 mr-2" /> {t('chapterDone')}
                   </Button>
                 )}
               </div>

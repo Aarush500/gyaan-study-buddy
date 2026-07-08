@@ -14,9 +14,11 @@ import { getExams } from '@/lib/exams';
 import { pushNotification } from '@/lib/notifications';
 import { MessageCircleQuestion, FileCheck, LogOut } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
+import { useT } from '@/lib/i18n';
 
 export default function Dashboard() {
   const { user, profile, signOut } = useAuth();
+  const { t } = useT();
   const [unlockedCount, setUnlockedCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -51,8 +53,8 @@ export default function Dashboard() {
   const boardExam = exams.find((e) => e.boardYear) || exams[0];
 
   const quickActions = [
-    { to: '/verify', icon: FileCheck, label: 'Verify My Notes' },
-    { to: '#', icon: MessageCircleQuestion, label: 'Ask a Doubt (Coming Soon)' },
+    { to: '/verify', icon: FileCheck, label: t('verifyMyNotes') },
+    { to: '#', icon: MessageCircleQuestion, label: t('askDoubtSoon') },
   ];
 
   return (
@@ -72,7 +74,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-1.5">
             <NotificationBell />
             <Button variant="outline" size="sm" onClick={signOut} className="border-primary text-primary hover:bg-primary-soft">
-              <LogOut className="w-4 h-4 mr-1.5" />Sign Out
+              <LogOut className="w-4 h-4 mr-1.5" />{t('signOut')}
             </Button>
           </div>
         </div>
@@ -81,13 +83,13 @@ export default function Dashboard() {
       <main className="max-w-3xl mx-auto px-4 py-6">
         {/* Welcome */}
         <section className="mb-6">
-          <p className="text-sm text-muted-foreground">Welcome back,</p>
+          <p className="text-sm text-muted-foreground">{t('welcomeBack')}</p>
           <h1 className="font-display text-4xl font-extrabold tracking-tight">
             {(profile?.full_name || 'Student').split(' ')[0]} 👋
           </h1>
           {boardExam && (
             <span className="mt-2 inline-block text-sm font-semibold text-weak-soft-foreground bg-weak-soft px-3 py-1 rounded-full">
-              {boardExam.boardYear ? 'Boards' : boardExam.label.replace(' (predicted)', '')} in {boardExam.days} days
+              {(boardExam.boardYear ? t('boards') : boardExam.label.replace(' (predicted)', ''))} {t('inDays', { n: boardExam.days })}
             </span>
           )}
         </section>
@@ -96,13 +98,13 @@ export default function Dashboard() {
         <section className="grid grid-cols-2 gap-3 mb-6">
           <div className="rounded-xl bg-primary-soft p-4">
             <div className="font-display text-3xl font-extrabold text-primary">{profile?.streak_days || 0}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">Day streak</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{t('dayStreak')}</div>
           </div>
           <div className="rounded-xl bg-strong-soft p-4">
             <div className="font-display text-3xl font-extrabold text-strong">
               {unlockedCount === null ? '—' : unlockedCount}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">Unlocked</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{t('unlocked')}</div>
           </div>
         </section>
 
