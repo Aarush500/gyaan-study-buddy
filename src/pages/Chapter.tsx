@@ -314,11 +314,11 @@ export default function Chapter() {
                         <Lock className="w-5 h-5 text-primary" />
                       </div>
                       <div className="font-display text-xl font-extrabold">Unlock this chapter</div>
-                      <div className="text-sm text-muted-foreground mt-1">First topic is free. Unlock the rest.</div>
+                      <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
                       <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
                       <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid till 30 Apr</div>
                       <Button className="w-full mt-4 glass-btn text-primary-foreground h-11" onClick={handleUnlock}>
-                        Unlock for ₹39
+                        {t('unlockFor')}
                       </Button>
                     </div>
                   </div>
@@ -327,16 +327,16 @@ export default function Chapter() {
 
               <div className="flex items-center justify-between mt-8 pt-4 border-t border-border/40">
                 <Button variant="outline" className="glass" disabled={current === 0} onClick={() => goTo(current - 1)}>
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Previous
+                  <ArrowLeft className="w-4 h-4 mr-2" /> {t('previous')}
                 </Button>
                 <span className="text-xs text-muted-foreground">{current + 1} / {topics.length}</span>
                 {current < topics.length - 1 ? (
                   <Button className="glass-btn text-primary-foreground" onClick={() => goTo(current + 1)}>
-                    Next topic <ArrowRight className="w-4 h-4 ml-2" />
+                    {t('nextTopic')} <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
                   <Button className="glass-btn text-primary-foreground" disabled>
-                    <CheckCircle className="w-4 h-4 mr-2" /> Chapter done
+                    <CheckCircle className="w-4 h-4 mr-2" /> {t('chapterDone')}
                   </Button>
                 )}
               </div>
