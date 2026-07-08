@@ -228,7 +228,7 @@ export default function Chapter() {
       <header className="glass sticky top-0 z-50 border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <Link to={`/subject/${subjectId}`} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('back')}
           </Link>
           <div className="flex items-center gap-2">
             {unlocked && expiryDays != null && (
@@ -236,7 +236,7 @@ export default function Chapter() {
             )}
             <Button variant="outline" size="sm" className="glass" onClick={() => fetchNotes(true)} disabled={refreshing} title="Regenerate with the latest NCERT syllabus">
               <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline ml-2">Latest NCERT</span>
+              <span className="hidden sm:inline ml-2">{t('latestNcert')}</span>
             </Button>
             <Sheet>
               <SheetTrigger asChild>
@@ -251,7 +251,7 @@ export default function Chapter() {
             </Sheet>
             <Link to={`/doubt/${subjectId}/${chapterId}`}>
               <Button size="sm" className="glass-btn text-primary-foreground">
-                <MessageCircleQuestion className="w-4 h-4 mr-2" /> Doubt
+                <MessageCircleQuestion className="w-4 h-4 mr-2" /> {t('askDoubt')}
               </Button>
             </Link>
           </div>
