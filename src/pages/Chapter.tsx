@@ -188,9 +188,9 @@ export default function Chapter() {
         <Card className="max-w-md glass-strong">
           <CardContent className="pt-6 text-center">
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Failed to load notes</h2>
+            <h2 className="text-xl font-bold mb-2">{t('failedToLoad')}</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button className="glass-btn text-primary-foreground" onClick={() => window.location.reload()}>Try Again</Button>
+            <Button className="glass-btn text-primary-foreground" onClick={() => window.location.reload()}>{t('tryAgain')}</Button>
           </CardContent>
         </Card>
       </div>
