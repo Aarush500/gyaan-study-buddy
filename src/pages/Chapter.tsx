@@ -245,7 +245,7 @@ export default function Chapter() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="app-bg w-80">
-                <div className="mt-6 mb-3 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> Topics</div>
+                <div className="mt-6 mb-3 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
                 {Sidebar}
               </SheetContent>
             </Sheet>
@@ -261,7 +261,7 @@ export default function Chapter() {
       <div className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-[260px_1fr] gap-6">
         <aside className="hidden lg:block">
           <div className="glass rounded-2xl p-3 sticky top-20">
-            <div className="px-2 pb-2 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> Topics</div>
+            <div className="px-2 pb-2 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
             <div className="px-2 pb-3">
               <Progress value={progressPct} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">{completed.size}/{topics.length} done • {progressPct}%</p>
@@ -313,7 +313,7 @@ export default function Chapter() {
                       <div className="mx-auto w-12 h-12 rounded-full glass grid place-items-center mb-3">
                         <Lock className="w-5 h-5 text-primary" />
                       </div>
-                      <div className="font-display text-xl font-extrabold">Unlock this chapter</div>
+                      <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
                       <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
                       <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
                       <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid till 30 Apr</div>
