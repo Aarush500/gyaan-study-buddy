@@ -5,85 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Lock, BookOpen } from 'lucide-react';
-
-interface Chapter {
-  name: string;
-  number: number;
-  isFree: boolean;
-}
-
-const mk = (names: string[]): Chapter[] =>
-  names.map((name, i) => ({ name, number: i + 1, isFree: i < 2 }));
-
-// Correct NCERT syllabus per class (2026-27)
-const SYLLABUS: Record<string, Record<string, Chapter[]>> = {
-  '9': {
-    Mathematics: mk([
-      'Number Systems', 'Polynomials Part 1', 'Polynomials Part 2', 'Coordinate Geometry',
-      'Linear Equations in Two Variables', "Introduction to Euclid's Geometry", 'Lines and Angles',
-      'Triangles', 'Quadrilaterals', 'Circles', "Heron's Formula", 'Surface Areas and Volumes',
-      'Statistics', 'Arithmetic Progressions', 'Pair of Linear Equations', 'Geometric Progression',
-    ]),
-    Science: mk([
-      'Matter in Our Surroundings', 'Is Matter Around Us Pure', 'Atoms and Molecules',
-      'Structure of the Atom', 'The Fundamental Unit of Life', 'Tissues', 'Motion',
-      'Force and Laws of Motion', 'Work and Energy', 'Sound', 'Why Do We Fall Ill',
-      'Natural Resources', 'Earth Science: Natural Cycles and Earth Systems',
-      'Earth Science: Environmental Balance and Radiation',
-    ]),
-    'Social Science': mk([
-      'Early Human Civilisations and India', 'Ancient Indian Civilisations (Harappan Culture)',
-      'Bhakti and Sufi Traditions', 'Medieval India', 'Colonial India and Resistance',
-      'Physical Features of India', 'Climate and Natural Vegetation', 'Plate Tectonics',
-      'Interior and Composition of Earth', 'Ocean Relief and Biomes', 'Democracy and Elections',
-      'Justice and Authority', 'Indian Economy and Financial Literacy',
-      'Budgeting and Personal Finance', 'Entrepreneurship and Investment Basics',
-      'India in the Global World',
-    ]),
-    English: mk([
-      'Kaveri: Prose 1', 'Kaveri: Poetry 1', 'Kaveri: Prose 2', 'Kaveri: Poetry 2',
-      'Persuasive Essays', 'Literary Analysis', 'Research Writing', 'Creative Writing',
-    ]),
-    Sanskrit: mk([
-      'Sharda: Prose', 'Sharda: Poetry', 'Grammar: Tatpurusha Samas', 'Grammar: Avyaya',
-      'Dialogue Completion', 'Story Completion',
-    ]),
-  },
-  '10': {
-    Mathematics: mk([
-      'Real Numbers', 'Polynomials', 'Pair of Linear Equations in Two Variables',
-      'Quadratic Equations', 'Arithmetic Progressions', 'Triangles', 'Coordinate Geometry',
-      'Introduction to Trigonometry', 'Some Applications of Trigonometry', 'Circles',
-      'Areas Related to Circles', 'Surface Areas and Volumes', 'Statistics', 'Probability',
-    ]),
-    Science: mk([
-      'Chemical Reactions and Equations', 'Acids Bases and Salts', 'Metals and Non-metals',
-      'Carbon and its Compounds', 'Life Processes', 'Control and Coordination',
-      'How do Organisms Reproduce', 'Heredity', 'Light Reflection and Refraction',
-      'Human Eye and Colourful World', 'Electricity', 'Magnetic Effects of Electric Current',
-      'Our Environment',
-    ]),
-    'Social Science': mk([
-      'The Rise of Nationalism in Europe', 'Nationalism in India', 'The Making of a Global World',
-      'The Age of Industrialisation', 'Print Culture and the Modern World',
-      'Resources and Development', 'Forest and Wildlife Resources', 'Water Resources',
-      'Agriculture', 'Minerals and Energy Resources', 'Manufacturing Industries',
-      'Lifelines of National Economy', 'Power Sharing', 'Federalism', 'Democracy and Diversity',
-      'Gender Religion and Caste', 'Political Parties', 'Outcomes of Democracy',
-      'Challenges to Democracy', 'Development', 'Sectors of the Indian Economy',
-      'Money and Credit', 'Globalisation and the Indian Economy', 'Consumer Rights',
-    ]),
-    English: mk([
-      'A Letter to God', 'Nelson Mandela', 'Two Stories about Flying',
-      'From the Diary of Anne Frank', 'The Hundred Dresses I', 'The Hundred Dresses II',
-      'Glimpses of India', 'Mijbil the Otter', 'Madam Rides the Bus', 'The Sermon at Benares',
-      'The Proposal',
-    ]),
-  },
-};
-
-// Legacy separate-science subjects map to the integrated Science book
-const SCIENCE_ALIASES = ['Physics', 'Chemistry', 'Biology'];
+import { getSubjectSyllabus } from '@/lib/syllabus';
 
 const SUBJECT_ACCENT: Record<string, string> = {
   Physics: 'border-l-blue-500',
@@ -119,11 +41,7 @@ export default function Subject() {
   const subjectName = subjectId || 'Science';
   const classLevel = profile?.class_level || '10';
 
-  const classSyllabus = SYLLABUS[classLevel] || SYLLABUS['10'];
-  let lookup = subjectName;
-  // Class 9 integrated Science: legacy Physics/Chemistry/Biology -> Science
-  if (classLevel === '9' && SCIENCE_ALIASES.includes(subjectName)) lookup = 'Science';
-  const chapters = classSyllabus[lookup] || classSyllabus[subjectName] || [];
+  const { lookup, book, chapters } = getSubjectSyllabus(classLevel, subjectName);
 
   const accent = SUBJECT_ACCENT[lookup] || 'border-l-primary';
   const iconBg = SUBJECT_ICON_BG[lookup] || 'bg-primary';
@@ -148,11 +66,14 @@ export default function Subject() {
         {/* Clean header — no solid colour banner */}
         <div className="mb-8">
           <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-            {lookup === 'Science' && SCIENCE_ALIASES.includes(subjectName) ? subjectName : subjectName}
+            {subjectName}
           </h1>
           <p className="text-muted-foreground mt-2">
             Class {classLevel} CBSE {classLevel === '9' ? '· 2026-27 NCERT' : ''}
           </p>
+          {book && (
+            <p className="text-sm font-semibold text-primary mt-1">Book: {book}</p>
+          )}
           <p className="text-sm text-muted-foreground mt-1">{chapters.length} chapters available</p>
         </div>
 
@@ -190,6 +111,17 @@ export default function Subject() {
                       <h3 className="font-semibold text-base leading-snug text-foreground mb-3">
                         {chapter.name}
                       </h3>
+                      {chapter.advanced && (
+                        <Badge variant="outline" className="mb-2 border-primary/40 text-primary">Advanced · optional</Badge>
+                      )}
+                      {chapter.topics && (
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-2 line-clamp-3">
+                          {chapter.topics}
+                        </p>
+                      )}
+                      {chapter.note && (
+                        <p className="text-xs text-weak font-medium mb-3">{chapter.note}</p>
+                      )}
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <BookOpen className="w-4 h-4" />
                         <span>View Notes</span>
