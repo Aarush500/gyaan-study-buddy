@@ -5,15 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Lock, BookOpen } from 'lucide-react';
-
-interface Chapter {
-  name: string;
-  number: number;
-  isFree: boolean;
-}
-
-const mk = (names: string[]): Chapter[] =>
-  names.map((name, i) => ({ name, number: i + 1, isFree: i < 2 }));
+import { getSubjectSyllabus, SCIENCE_ALIASES } from '@/lib/syllabus';
 
 // Correct NCERT syllabus per class (2026-27)
 const SYLLABUS: Record<string, Record<string, Chapter[]>> = {
