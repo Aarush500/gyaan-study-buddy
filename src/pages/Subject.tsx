@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Lock, BookOpen } from 'lucide-react';
-import { getSubjectSyllabus, SCIENCE_ALIASES } from '@/lib/syllabus';
+import { getSubjectSyllabus } from '@/lib/syllabus';
 
 const SUBJECT_ACCENT: Record<string, string> = {
   Physics: 'border-l-blue-500',
