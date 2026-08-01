@@ -71,6 +71,9 @@ export default function Subject() {
           <p className="text-muted-foreground mt-2">
             Class {classLevel} CBSE {classLevel === '9' ? '· 2026-27 NCERT' : ''}
           </p>
+          {book && (
+            <p className="text-sm font-semibold text-primary mt-1">Book: {book}</p>
+          )}
           <p className="text-sm text-muted-foreground mt-1">{chapters.length} chapters available</p>
         </div>
 
@@ -108,6 +111,17 @@ export default function Subject() {
                       <h3 className="font-semibold text-base leading-snug text-foreground mb-3">
                         {chapter.name}
                       </h3>
+                      {chapter.advanced && (
+                        <Badge variant="outline" className="mb-2 border-primary/40 text-primary">Advanced · optional</Badge>
+                      )}
+                      {chapter.topics && (
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-2 line-clamp-3">
+                          {chapter.topics}
+                        </p>
+                      )}
+                      {chapter.note && (
+                        <p className="text-xs text-weak font-medium mb-3">{chapter.note}</p>
+                      )}
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <BookOpen className="w-4 h-4" />
                         <span>View Notes</span>
