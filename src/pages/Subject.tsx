@@ -66,7 +66,7 @@ export default function Subject() {
         {/* Clean header — no solid colour banner */}
         <div className="mb-8">
           <h1 className="font-display text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
-            {lookup === 'Science' && SCIENCE_ALIASES.includes(subjectName) ? subjectName : subjectName}
+            {subjectName}
           </h1>
           <p className="text-muted-foreground mt-2">
             Class {classLevel} CBSE {classLevel === '9' ? '· 2026-27 NCERT' : ''}
