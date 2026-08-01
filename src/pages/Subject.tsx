@@ -41,11 +41,7 @@ export default function Subject() {
   const subjectName = subjectId || 'Science';
   const classLevel = profile?.class_level || '10';
 
-  const classSyllabus = SYLLABUS[classLevel] || SYLLABUS['10'];
-  let lookup = subjectName;
-  // Class 9 integrated Science: legacy Physics/Chemistry/Biology -> Science
-  if (classLevel === '9' && SCIENCE_ALIASES.includes(subjectName)) lookup = 'Science';
-  const chapters = classSyllabus[lookup] || classSyllabus[subjectName] || [];
+  const { lookup, book, chapters } = getSubjectSyllabus(classLevel, subjectName);
 
   const accent = SUBJECT_ACCENT[lookup] || 'border-l-primary';
   const iconBg = SUBJECT_ICON_BG[lookup] || 'bg-primary';
