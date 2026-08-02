@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.create_notification(text, text, text, text) FROM anon;
