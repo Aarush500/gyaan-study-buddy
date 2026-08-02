@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 
 const FREE_CHAPTERS = [
-  { subject: 'Science', className: 'Class 10', chapter: 'Chemical Reactions and Equations', time: '10 min read' },
+  { subject: 'Chemistry', className: 'Class 10', chapter: 'Chemical Reactions and Equations', time: '10 min read' },
   { subject: 'Mathematics', className: 'Class 10', chapter: 'Real Numbers', time: '12 min read' },
   { subject: 'Social Science', className: 'Class 10', chapter: 'The Rise of Nationalism in Europe', time: '11 min read' },
 ];
