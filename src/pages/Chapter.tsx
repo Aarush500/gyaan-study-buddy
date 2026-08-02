@@ -167,6 +167,8 @@ export default function Chapter() {
 
   const isLocked = (i: number) => i > 0 && !unlocked;
   const progressPct = topics.length ? Math.round((completed.size / topics.length) * 100) : 0;
+  // Next topic stays locked until the current one is fully finished
+  const topicDone = activeTopic ? completed.has(activeTopic.key) : false;
 
   function goTo(i: number) { setCurrent(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
