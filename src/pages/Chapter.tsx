@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, callEdgeFunction } from '@/lib/supabase';
 import { buildTopics, type Topic } from '@/lib/topics';
-import { computeValidity, isUnlockValid, daysUntil } from '@/lib/validity';
+import { isUnlockValid, daysUntil } from '@/lib/validity';
 import { pushNotification } from '@/lib/notifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -99,16 +99,18 @@ export default function Chapter() {
 
   async function handleUnlock() {
     if (!user) return;
-    const { validFrom, validUntil: vu } = computeValidity();
-    const { error: e } = await supabase.from('unlocked_chapters').upsert({
-      user_id: user.id, subject: subjectName, chapter_name: chapterName,
-      class_level: profile?.class_level || '9', is_free: false,
-      valid_from: validFrom, valid_until: vu,
-    }, { onConflict: 'user_id,subject,chapter_name,class_level' });
-    if (e) { toast.error('Could not unlock. Try again.'); return; }
+    // Unlocks are granted only by the server after a verified payment.
+    const { data, error } = await callEdgeFunction<{ unlocked?: boolean; validUntil?: string }>(
+      'unlock-chapter',
+      { subject: subjectName, chapterName, classLevel: profile?.class_level || '9' },
+    );
+    if (error || !data?.unlocked) {
+      toast.error(error || 'Could not unlock. Try again.');
+      return;
+    }
     setUnlocked(true);
-    setValidUntil(vu);
-    toast.success('Unlocked! Valid till ' + vu);
+    setValidUntil(data.validUntil ?? null);
+    toast.success('Unlocked! Valid till ' + data.validUntil);
   }
 
   async function toggleBookmark(t: Topic) {

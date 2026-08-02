@@ -11,7 +11,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, classLevel: string, preferredLanguage: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithGoogle: () => Promise<{ error?: string; redirected?: boolean }>;
+  signInWithGoogle: (next?: string) => Promise<{ error?: string; redirected?: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error?: string }>;
 }
@@ -155,10 +155,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(next?: string) {
     try {
+      const safeNext = next && /^\/[^/\\]/.test(next) ? next : null;
       const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+        redirect_uri: safeNext
+          ? `${window.location.origin}/login?next=${encodeURIComponent(safeNext)}`
+          : window.location.origin,
         extraParams: { prompt: 'select_account' },
       });
 

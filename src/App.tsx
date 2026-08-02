@@ -15,6 +15,7 @@ import Subject from "./pages/Subject.tsx";
 import Chapter from "./pages/Chapter.tsx";
 import DoubtChat from "./pages/DoubtChat.tsx";
 import VerifyNotes from "./pages/VerifyNotes.tsx";
+import OAuthConsent from "./pages/OAuthConsent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ function AnimatedRoutes() {
         <Route path="/subject/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Chapter /></PageTransition></ProtectedRoute>} />
         <Route path="/doubt/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><DoubtChat /></PageTransition></ProtectedRoute>} />
         <Route path="/verify" element={<ProtectedRoute><PageTransition><VerifyNotes /></PageTransition></ProtectedRoute>} />
+        <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
     </AnimatePresence>

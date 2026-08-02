@@ -364,7 +364,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_notification: {
+        Args: {
+          p_body?: string
+          p_link?: string
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
