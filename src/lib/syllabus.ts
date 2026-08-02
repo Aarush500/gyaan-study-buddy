@@ -44,19 +44,29 @@ export const SYLLABUS: Record<string, Record<string, SubjectSyllabus>> = {
         { name: 'Geometric Progressions', topics: 'GP, common ratio, nth term, sum of n terms, sum of infinite GP, applications.', note: 'Moved from Class 11. Advanced level — optional, for JEE/Olympiad aspirants.', advanced: true },
       ]),
     },
-    Science: {
-      book: 'Exploration',
+    Physics: {
+      book: 'Exploration (Physics section)',
+      chapters: mk([
+        { name: 'Motion', topics: 'Describing and measuring motion, distance-time and velocity-time graphs, equations of motion, uniform circular motion.' },
+        { name: 'Force and Laws of Motion', topics: 'Balanced and unbalanced forces, inertia, momentum, three laws of motion, conservation of momentum.' },
+        { name: 'Work and Energy', topics: 'Work, energy and its forms, kinetic and potential energy, law of conservation of energy, power, commercial unit of energy.' },
+        { name: 'Sound', topics: 'Production and propagation, amplitude, frequency, wavelength, echo, reverberation, range of hearing, ultrasound, SONAR, human ear.' },
+      ]),
+    },
+    Chemistry: {
+      book: 'Exploration (Chemistry section)',
       chapters: mk([
         { name: 'Matter in Our Surroundings', topics: 'Physical nature of matter, particle characteristics, states of matter, evaporation, effect of temperature and pressure, latent heat, sublimation, plasma and Bose-Einstein condensate.' },
         { name: 'Is Matter Around Us Pure', topics: 'Mixtures, solutions, suspensions, colloids, separation techniques, elements and compounds.' },
         { name: 'Atoms and Molecules', topics: 'Laws of chemical combination, Dalton\u2019s atomic theory, atomic and molecular mass, mole concept, molar mass, Avogadro\u2019s number, chemical formulae.' },
         { name: 'Structure of the Atom', topics: 'Charged particles, Thomson, Rutherford and Bohr models, electron distribution (2,8,8), valency, atomic and mass number, isotopes and isobars.' },
+      ]),
+    },
+    Biology: {
+      book: 'Exploration (Biology & Earth Science sections)',
+      chapters: mk([
         { name: 'The Fundamental Unit of Life', topics: 'Cell discovery, cell theory, prokaryotic vs eukaryotic, plant vs animal cell, all organelles and their functions.' },
         { name: 'Tissues', topics: 'Plant tissues — meristematic and permanent; animal tissues — epithelial, connective, muscular, nervous.' },
-        { name: 'Motion', topics: 'Describing and measuring motion, distance-time and velocity-time graphs, equations of motion, uniform circular motion.' },
-        { name: 'Force and Laws of Motion', topics: 'Balanced and unbalanced forces, inertia, momentum, three laws of motion, conservation of momentum.' },
-        { name: 'Work and Energy', topics: 'Work, energy and its forms, kinetic and potential energy, law of conservation of energy, power, commercial unit of energy.' },
-        { name: 'Sound', topics: 'Production and propagation, amplitude, frequency, wavelength, echo, reverberation, range of hearing, ultrasound, SONAR, human ear.' },
         { name: 'Why Do We Fall Ill', topics: 'Health vs disease-free, acute and chronic disease, infectious and non-infectious disease, spread, treatment, prevention, antibiotics.' },
         { name: 'Natural Resources', topics: 'Air, water, soil, biogeochemical cycles, ozone layer, greenhouse effect, global warming.' },
         { name: 'Earth Science: Natural Cycles and Earth Systems', topics: 'Earth as a system — lithosphere, hydrosphere, atmosphere, biosphere and their interactions, energy flows and matter cycles, human impact, sustainable development.', note: 'Brand new chapter under NEP 2020 — no equivalent in the old syllabus.' },
@@ -93,28 +103,6 @@ export const SYLLABUS: Record<string, Record<string, SubjectSyllabus>> = {
         { name: 'Creative Writing', topics: 'Descriptive writing, narrative writing, dialogue writing, creative non-fiction.' },
       ]),
     },
-    Hindi: {
-      book: 'Kshitij Part 1 & Kritika Part 1',
-      chapters: mk([
-        { name: 'क्षितिज: गद्य खंड', topics: 'गद्य पाठों का सार, लेखक परिचय, प्रश्न-उत्तर।' },
-        { name: 'क्षितिज: काव्य खंड', topics: 'कविताओं की व्याख्या, भाव-सौंदर्य, शिल्प-सौंदर्य।' },
-        { name: 'कृतिका: पूरक पाठ', topics: 'कृतिका भाग 1 के पाठ और उनके प्रश्न।' },
-        { name: 'व्याकरण', topics: 'शब्द-निर्माण, अलंकार, रस, वाक्य-भेद।' },
-        { name: 'लेखन', topics: 'अनुच्छेद लेखन, पत्र लेखन, संवाद लेखन, चित्र वर्णन।' },
-      ]),
-    },
-    Sanskrit: {
-      book: 'Sharda',
-      chapters: mk([
-        { name: 'शारदा: गद्य', topics: 'गद्य पाठ, अर्थ-बोध, प्रश्नोत्तर।' },
-        { name: 'शारदा: पद्य', topics: 'श्लोक, अन्वय, भावार्थ।' },
-        { name: 'व्याकरण: तत्पुरुष समास', topics: 'तत्पुरुष समास के भेद और उदाहरण।', note: 'Explicitly added in the new syllabus.' },
-        { name: 'व्याकरण: अव्यय', topics: 'विस्तारित अव्यय सूची और प्रयोग।', note: 'Expanded list now in the examination scope.' },
-        { name: 'व्याकरण: उभयपदी धातु', topics: 'उभयपदी धातुओं के रूप और प्रयोग।', note: 'New addition to the grammar section.' },
-        { name: 'संवादपूर्ति', topics: 'Dialogue completion exercises — replaces the removed translation section.' },
-        { name: 'कथापूर्ति', topics: 'Story completion exercises — replaces the removed translation section.' },
-      ]),
-    },
   },
   '10': {
     Mathematics: {
@@ -126,14 +114,25 @@ export const SYLLABUS: Record<string, Record<string, SubjectSyllabus>> = {
         'Areas Related to Circles', 'Surface Areas and Volumes', 'Statistics', 'Probability',
       ]),
     },
-    Science: {
-      book: 'NCERT Science (Class 10)',
+    Physics: {
+      book: 'NCERT Science (Class 10) — Physics section',
       chapters: mk([
-        'Chemical Reactions and Equations', 'Acids Bases and Salts', 'Metals and Non-metals',
-        'Carbon and its Compounds', 'Life Processes', 'Control and Coordination',
-        'How do Organisms Reproduce', 'Heredity', 'Light Reflection and Refraction',
-        'Human Eye and Colourful World', 'Electricity', 'Magnetic Effects of Electric Current',
-        'Our Environment',
+        'Light Reflection and Refraction', 'Human Eye and Colourful World',
+        'Electricity', 'Magnetic Effects of Electric Current',
+      ]),
+    },
+    Chemistry: {
+      book: 'NCERT Science (Class 10) — Chemistry section',
+      chapters: mk([
+        'Chemical Reactions and Equations', 'Acids Bases and Salts',
+        'Metals and Non-metals', 'Carbon and its Compounds',
+      ]),
+    },
+    Biology: {
+      book: 'NCERT Science (Class 10) — Biology section',
+      chapters: mk([
+        'Life Processes', 'Control and Coordination', 'How do Organisms Reproduce',
+        'Heredity', 'Our Environment',
       ]),
     },
     'Social Science': {
@@ -178,13 +177,20 @@ export function removedNotice(chapter: string, classLevel: string): string | nul
   return 'This chapter was part of the old Class 9 syllabus (Beehive/Moments and the old books), which the 2026-27 NCERT syllabus has replaced. Here are the new chapters available.';
 }
 
-// Legacy separate-science subjects map to the integrated Science book
-export const SCIENCE_ALIASES = ['Physics', 'Chemistry', 'Biology'];
+// Science is split into Physics, Chemistry and Biology
+export const SCIENCE_STREAMS = ['Physics', 'Chemistry', 'Biology'];
 
 export function getSubjectSyllabus(classLevel: string, subjectName: string) {
   const classSyllabus = SYLLABUS[classLevel] || SYLLABUS['10'];
-  let lookup = subjectName;
-  if (classLevel === '9' && SCIENCE_ALIASES.includes(subjectName)) lookup = 'Science';
-  const entry = classSyllabus[lookup] || classSyllabus[subjectName];
+  const lookup = subjectName;
+
+  // Legacy "Science" links now fall back to the combined stream chapters
+  if (lookup === 'Science') {
+    const chapters = SCIENCE_STREAMS.flatMap((s) => classSyllabus[s]?.chapters ?? [])
+      .map((c, i) => ({ ...c, number: i + 1 }));
+    return { lookup, book: 'Physics · Chemistry · Biology', chapters };
+  }
+
+  const entry = classSyllabus[lookup];
   return { lookup, book: entry?.book ?? '', chapters: entry?.chapters ?? [] };
 }
