@@ -15,6 +15,7 @@ import Subject from "./pages/Subject.tsx";
 import Chapter from "./pages/Chapter.tsx";
 import DoubtChat from "./pages/DoubtChat.tsx";
 import VerifyNotes from "./pages/VerifyNotes.tsx";
+import OAuthConsent from "./pages/OAuthConsent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
