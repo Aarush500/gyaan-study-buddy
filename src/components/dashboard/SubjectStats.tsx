@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { SYLLABUS } from '@/lib/syllabus';
 import {
-  FlaskConical, Sigma, Globe2, BookOpen, Languages, ScrollText,
+  FlaskConical, Sigma, Globe2, BookOpen,
   Landmark, LineChart, Monitor, Atom, Leaf, TestTube, type LucideIcon,
 } from 'lucide-react';
 
@@ -50,28 +50,38 @@ export function SubjectStats({ classLevel, weakSubjects = [] }: SubjectStatsProp
           const isWeak = weak.has(name);
           const Icon = ICONS[name] || BookOpen;
           const progress = progressFor(name, isWeak);
+          const chapterCount = SYLLABUS[classLevel]?.[name]?.chapters.length ?? 0;
           return (
             <Link key={name} to={`/subject/${name}`} className="block">
               <div
-                className={`relative aspect-square rounded-2xl bg-card border border-border p-3 flex flex-col items-center justify-center text-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all ${
-                  isWeak ? 'ring-1 ring-weak/40' : ''
+                className={`relative aspect-square rounded-2xl bg-card p-3 flex flex-col items-center justify-between text-center hover:shadow-lg hover:-translate-y-0.5 transition-all border-2 ${
+                  isWeak ? 'border-weak/50' : 'border-border hover:border-primary/50'
                 }`}
               >
                 <span
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-                    isWeak ? 'bg-weak-soft' : 'bg-primary-soft'
+                  className={`mt-1 w-12 h-12 rounded-2xl border flex items-center justify-center ${
+                    isWeak ? 'bg-weak-soft border-weak/30' : 'bg-primary-soft border-primary/20'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isWeak ? 'text-weak' : 'text-primary'}`} />
+                  <Icon className={`w-6 h-6 ${isWeak ? 'text-weak' : 'text-primary'}`} />
                 </span>
-                <span className="text-xs font-semibold leading-tight text-foreground line-clamp-2">
-                  {name}
-                </span>
-                <div className="w-full h-1 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${isWeak ? 'bg-weak' : 'bg-strong'}`}
-                    style={{ width: `${progress}%` }}
-                  />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-bold leading-tight text-foreground line-clamp-2">
+                    {name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {chapterCount ? `${chapterCount} chapters` : 'Coming soon'}
+                  </span>
+                </div>
+                <div className="w-full">
+                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                    {/* signature blue progress line — same for every subject */}
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground mt-1 block">{progress}%</span>
                 </div>
                 {isWeak && (
                   <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-weak" />
