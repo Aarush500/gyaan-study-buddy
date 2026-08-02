@@ -99,16 +99,20 @@ export default function Chapter() {
 
   async function handleUnlock() {
     if (!user) return;
-    const { validFrom, validUntil: vu } = computeValidity();
-    const { error: e } = await supabase.from('unlocked_chapters').upsert({
-      user_id: user.id, subject: subjectName, chapter_name: chapterName,
-      class_level: profile?.class_level || '9', is_free: false,
-      valid_from: validFrom, valid_until: vu,
-    }, { onConflict: 'user_id,subject,chapter_name,class_level' });
-    if (e) { toast.error('Could not unlock. Try again.'); return; }
-    setUnlocked(true);
-    setValidUntil(vu);
-    toast.success('Unlocked! Valid till ' + vu);
+    // Unlocks are granted only by the server after a verified payment.
+    try {
+      const res = await callEdgeFunction('unlock-chapter', {
+        subject: subjectName,
+        chapterName,
+        classLevel: profile?.class_level || '9',
+      }) as { unlocked?: boolean; validUntil?: string };
+      if (!res?.unlocked) throw new Error('Unlock was not granted');
+      setUnlocked(true);
+      setValidUntil(res.validUntil ?? null);
+      toast.success('Unlocked! Valid till ' + res.validUntil);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not unlock. Try again.');
+    }
   }
 
   async function toggleBookmark(t: Topic) {
