@@ -155,10 +155,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(next?: string) {
     try {
+      const safeNext = next && /^\/[^/\\]/.test(next) ? next : null;
       const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+        redirect_uri: safeNext
+          ? `${window.location.origin}/login?next=${encodeURIComponent(safeNext)}`
+          : window.location.origin,
         extraParams: { prompt: 'select_account' },
       });
 
