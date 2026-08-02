@@ -17,7 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import {
   ArrowLeft, ArrowRight, BookOpen, MessageCircleQuestion, Sparkles, TriangleAlert as AlertTriangle,
-  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, RefreshCw, Circle,
+  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, Circle,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
@@ -45,10 +45,8 @@ export default function Chapter() {
   const topics = buildTopics(notes);
   const activeTopic: Topic | undefined = topics[current];
 
-  const [refreshing, setRefreshing] = useState(false);
-
   const fetchNotes = useCallback(async (forceRefresh = false) => {
-    if (forceRefresh) setRefreshing(true); else setLoading(true);
+    setLoading(true);
     setError(null);
     const { data, error: err } = await callEdgeFunction<{ notes: ChapterNote; cached: boolean }>('generate-notes', {
       subject: subjectName,
@@ -59,12 +57,8 @@ export default function Chapter() {
       forceRefresh,
     });
     if (err) setError(err);
-    else if (data?.notes) {
-      setNotes(data.notes);
-      if (forceRefresh) toast.success('Notes refreshed to the latest NCERT syllabus ✨');
-    }
+    else if (data?.notes) setNotes(data.notes);
     setLoading(false);
-    setRefreshing(false);
   }, [subjectName, chapterName, profile]);
 
   useEffect(() => {
