@@ -230,10 +230,6 @@ export default function Chapter() {
             {unlocked && expiryDays != null && (
               <Badge variant="secondary" className="hidden sm:flex">Valid {expiryDays}d</Badge>
             )}
-            <Button variant="outline" size="sm" className="glass" onClick={() => fetchNotes(true)} disabled={refreshing} title="Regenerate with the latest NCERT syllabus">
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline ml-2">{t('latestNcert')}</span>
-            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden glass">
@@ -271,9 +267,6 @@ export default function Chapter() {
             <Badge className="mb-3">{subjectId} • Class {profile?.class_level || '9'}</Badge>
             <h1 className="text-2xl md:text-3xl font-bold">{notes?.title || chapterName}</h1>
             <p className="text-muted-foreground text-sm mt-1">{notes?.twoLineSummary}</p>
-            <p className="text-xs text-strong mt-2 flex items-center gap-1.5">
-              <RefreshCw className="w-3 h-3" /> Aligned to the latest NCERT syllabus — tap "Latest NCERT" to regenerate anytime.
-            </p>
           </div>
 
           {activeTopic && (
@@ -321,19 +314,37 @@ export default function Chapter() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between mt-8 pt-4 border-t border-border/40">
-                <Button variant="outline" className="glass" disabled={current === 0} onClick={() => goTo(current - 1)}>
-                  <ArrowLeft className="w-4 h-4 mr-2" /> {t('previous')}
-                </Button>
-                <span className="text-xs text-muted-foreground">{current + 1} / {topics.length}</span>
-                {current < topics.length - 1 ? (
-                  <Button className="glass-btn text-primary-foreground" onClick={() => goTo(current + 1)}>
-                    {t('nextTopic')} <ArrowRight className="w-4 h-4 ml-2" />
+              <div className="mt-8 pt-4 border-t border-border/40">
+                <div className="flex items-center justify-between">
+                  <Button variant="outline" className="glass" disabled={current === 0} onClick={() => goTo(current - 1)}>
+                    <ArrowLeft className="w-4 h-4 mr-2" /> {t('previous')}
                   </Button>
-                ) : (
-                  <Button className="glass-btn text-primary-foreground" disabled>
-                    <CheckCircle className="w-4 h-4 mr-2" /> {t('chapterDone')}
-                  </Button>
+                  <span className="text-xs text-muted-foreground">{current + 1} / {topics.length}</span>
+                  {current < topics.length - 1 ? (
+                    <Button
+                      className="glass-btn text-primary-foreground"
+                      disabled={!topicDone}
+                      onClick={() => goTo(current + 1)}
+                    >
+                      {t('nextTopic')} <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button className="glass-btn text-primary-foreground" disabled>
+                      <CheckCircle className="w-4 h-4 mr-2" /> {t('chapterDone')}
+                    </Button>
+                  )}
+                </div>
+                {/* The next topic unlocks only after this whole topic — notes, visuals
+                    and the 3D model — is finished and marked complete. */}
+                {!topicDone && current < topics.length - 1 && (
+                  <button
+                    onClick={() => toggleComplete(activeTopic)}
+                    disabled={isLocked(current)}
+                    className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-primary disabled:opacity-50"
+                  >
+                    Finish this whole topic — read it, scroll through every visual and the 3D
+                    model, then tap here to mark it complete and unlock the next one.
+                  </button>
                 )}
               </div>
             </div>
