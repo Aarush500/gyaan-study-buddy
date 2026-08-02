@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,21 @@ export default function Login() {
   const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [params] = useSearchParams();
+  const rawNext = params.get('next') ?? '';
+  // only same-origin relative paths are accepted
+  const next = /^\/[^/\\]/.test(rawNext) ? rawNext : '/dashboard';
+
+  // Coming back from a social round-trip: honour the pending destination.
+  useEffect(() => {
+    if (!rawNext) return;
+    let active = true;
+    import('@/lib/supabase').then(async ({ supabase }) => {
+      const { data } = await supabase.auth.getSession();
+      if (active && data.session) window.location.href = next;
+    });
+    return () => { active = false; };
+  }, [rawNext, next]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,18 +40,20 @@ export default function Login() {
     if (error) {
       toast({ title: 'Login failed', description: error, variant: 'destructive' });
     } else {
-      navigate('/dashboard');
+      if (next.startsWith('/.lovable/')) window.location.href = next;
+      else navigate(next);
     }
   }
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    const { error, redirected } = await signInWithGoogle();
+    const { error, redirected } = await signInWithGoogle(next);
     if (error) {
       setGoogleLoading(false);
       toast({ title: 'Google sign-in failed', description: error, variant: 'destructive' });
     } else if (!redirected) {
-      navigate('/dashboard');
+      if (next.startsWith('/.lovable/')) window.location.href = next;
+      else navigate(next);
     }
   }
 

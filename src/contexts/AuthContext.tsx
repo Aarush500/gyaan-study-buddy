@@ -11,7 +11,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, classLevel: string, preferredLanguage: string) => Promise<{ error?: string }>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signInWithGoogle: () => Promise<{ error?: string; redirected?: boolean }>;
+  signInWithGoogle: (next?: string) => Promise<{ error?: string; redirected?: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error?: string }>;
 }
