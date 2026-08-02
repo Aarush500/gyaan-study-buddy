@@ -7,31 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Lock, BookOpen } from 'lucide-react';
 import { getSubjectSyllabus } from '@/lib/syllabus';
 
-const SUBJECT_ACCENT: Record<string, string> = {
-  Physics: 'border-l-blue-500',
-  Chemistry: 'border-l-green-500',
-  Science: 'border-l-emerald-500',
-  Mathematics: 'border-l-primary',
-  Biology: 'border-l-teal-500',
-  English: 'border-l-amber-500',
-  'Social Science': 'border-l-rose-500',
-  Hindi: 'border-l-orange-500',
-  Sanskrit: 'border-l-orange-500',
-  'Computer Science': 'border-l-cyan-500',
-};
-
-const SUBJECT_ICON_BG: Record<string, string> = {
-  Physics: 'bg-blue-500',
-  Chemistry: 'bg-green-500',
-  Science: 'bg-emerald-500',
-  Mathematics: 'bg-primary',
-  Biology: 'bg-teal-500',
-  English: 'bg-amber-500',
-  'Social Science': 'bg-rose-500',
-  Hindi: 'bg-orange-500',
-  Sanskrit: 'bg-orange-500',
-  'Computer Science': 'bg-cyan-500',
-};
+// Every subject keeps the same signature blue accent line
+const ACCENT = 'border-l-primary';
+const ICON_BG = 'bg-primary';
 
 export default function Subject() {
   const { subjectId } = useParams<{ subjectId: string }>();
@@ -41,10 +19,9 @@ export default function Subject() {
   const subjectName = subjectId || 'Science';
   const classLevel = profile?.class_level || '10';
 
-  const { lookup, book, chapters } = getSubjectSyllabus(classLevel, subjectName);
-
-  const accent = SUBJECT_ACCENT[lookup] || 'border-l-primary';
-  const iconBg = SUBJECT_ICON_BG[lookup] || 'bg-primary';
+  const { book, chapters } = getSubjectSyllabus(classLevel, subjectName);
+  const accent = ACCENT;
+  const iconBg = ICON_BG;
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
@@ -93,7 +70,7 @@ export default function Subject() {
                   to={`/subject/${subjectId}/${encodeURIComponent(chapter.name)}`}
                   className="block"
                 >
-                  <Card className={`bg-card hover:shadow-lg transition-all cursor-pointer h-full relative border-l-4 ${accent} rounded-xl`}>
+                  <Card className={`bg-card border border-border hover:border-primary/40 hover:shadow-lg transition-all cursor-pointer h-full relative border-l-4 ${accent} rounded-xl`}>
                     <CardContent className="pt-5 pb-5">
                       <div className="flex items-start justify-between mb-3">
                         <div className={`w-9 h-9 ${iconBg} rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0`}>

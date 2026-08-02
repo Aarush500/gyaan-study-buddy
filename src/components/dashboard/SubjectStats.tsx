@@ -5,7 +5,7 @@ import {
   Landmark, LineChart, Monitor, Atom, Leaf, TestTube, type LucideIcon,
 } from 'lucide-react';
 
-const DEFAULT_SUBJECTS = ['Science', 'Mathematics', 'Social Science', 'English', 'Hindi'];
+const DEFAULT_SUBJECTS = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Social Science', 'English'];
 
 const ICONS: Record<string, LucideIcon> = {
   Science: FlaskConical,
@@ -17,8 +17,6 @@ const ICONS: Record<string, LucideIcon> = {
   History: Landmark,
   Economics: LineChart,
   English: BookOpen,
-  Hindi: Languages,
-  Sanskrit: ScrollText,
   'Computer Science': Monitor,
 };
 
