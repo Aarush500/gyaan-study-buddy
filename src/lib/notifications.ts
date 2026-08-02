@@ -15,12 +15,16 @@ export async function pushNotification(
   userId: string,
   n: { type?: string; title: string; body?: string; link?: string }
 ) {
-  await supabase.from('notifications').insert({
-    user_id: userId,
-    type: n.type || 'info',
-    title: n.title,
-    body: n.body || '',
-    link: n.link || '',
+  // Notifications are created through a validated server-side function.
+  // The row is always written for the signed-in user (auth.uid()), the type is
+  // checked against an allowlist and links are restricted to in-app paths.
+  await (supabase as unknown as {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<unknown>;
+  }).rpc('create_notification', {
+    p_type: n.type || 'info',
+    p_title: n.title,
+    p_body: n.body || '',
+    p_link: n.link || '',
   });
 }
 
