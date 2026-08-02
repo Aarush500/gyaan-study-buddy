@@ -70,7 +70,6 @@ export const SUBJECTS = [
   { id: 'Biology', name: 'Biology', icon: 'Leaf', color: 'teal' },
   { id: 'English', name: 'English', icon: 'BookOpen', color: 'amber' },
   { id: 'Social Science', name: 'Social Science', icon: 'Globe', color: 'red' },
-  { id: 'Hindi', name: 'Hindi', icon: 'Languages', color: 'orange' },
   { id: 'Computer Science', name: 'Computer Science', icon: 'Monitor', color: 'cyan' },
 ] as const;
 
