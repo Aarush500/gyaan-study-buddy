@@ -428,6 +428,31 @@ export default function Chapter() {
   );
 }
 
+function LockedPreview({ notes }: { notes: ChapterNote }) {
+  return (
+    <Card className="glass">
+      <CardHeader><CardTitle className="text-lg">Key Points (free preview)</CardTitle></CardHeader>
+      <CardContent>
+        <ul className="space-y-3">
+          {(notes.keyPoints || []).map((kp, i) => (
+            <li key={i} className="flex gap-3">
+              <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" />
+              <div>
+                <span className="font-medium">{kp.point}</span>
+                <p className="text-sm text-muted-foreground mt-1">{kp.explanation}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="text-sm text-muted-foreground mt-5">
+          That's the summary. The full topic — deep explanations, notes between paragraphs, numericals,
+          diagrams, 3D visuals and the questions that definitely come in the exam — is right below.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function TopicBody({ notes, topic, selectedMcq, setSelectedMcq }: {
   notes: ChapterNote; topic: Topic;
   selectedMcq: Record<number, string>;
