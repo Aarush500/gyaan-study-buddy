@@ -189,7 +189,14 @@ ${buildSyllabusGuidance(subject, classLevel)}
 ================= HOW TO FILL EACH FIELD (MAP THE STRUCTURE BELOW INTO THE JSON) =================
 - twoLineSummary: Start with a HOOK — a curious question or scenario (e.g. "Ever wondered why you feel lighter in a swimming pool? That's literally today's chapter."). NEVER start with "In this chapter we will learn".
 - examBox: This is "WHAT WILL COME IN THE EXAM" — show it first in the student's mind. List question types from the last 5 years of CBSE board exams with marks and how often they appeared. Fill likely1Mark, likely3Mark, likely5Mark and real previousYearQuestions (with actual year + marks).
-- keyPoints: 8-10 crisp copy-worthy points, each max 2 lines — the exact points a student writes in their notebook.
+- keyPoints: 8-10 points, and every single one must be FULLY ELABORATED — not one-liners. "point" = the crisp notebook line; "explanation" = a properly detailed mini-lesson of 120-200 words that fully DEFINES the term, explains why it is true, gives the formula/unit/date/example where relevant, adds one Indian real-life example, and ends with a one-line "Exam tip:" telling how it is asked. Never write a vague or half explanation — if a term is used, define it right there.
+
+================= EXTRA CONTENT RULES (VERY IMPORTANT) =================
+- SIMPLE WORDS ONLY: never use heavy or unexplained vocabulary. If a technical term is unavoidable, define it in brackets immediately in simple words the first time. No exam-word soup, no unnecessarily hard English.
+- NOTES BETWEEN PARAGRAPHS: between paragraphs inside "content", drop short standalone lines starting with "📝 Note:" (a crucial fact or clarification) and "💡 Tip:" (a shortcut, a way to remember, or a smarter way to write it in the exam). At least 3 "📝 Note:" and 3 "💡 Tip:" lines per section.
+- MOST IMPORTANT QUESTION PER TOPIC: every detailedNotes section must end with a block starting "⭐ MOST IMPORTANT QUESTION (will definitely come in the exam):" — the question, its marks, and the complete model answer written exactly as the student should write it in the answer sheet.
+- NUMERICALS (Physics, Chemistry, Mathematics, and any Science topic with formulas): every such section must include at least 2 fully solved numericals under "🔢 SOLVED NUMERICAL:" with Given → Formula → Substitution → Calculation → Answer with unit, plus one "🔢 MOST IMPORTANT NUMERICAL:" that is the exam-favourite type for that topic, solved step by step, followed by one similar unsolved practice question with the final answer in brackets.
+- NEW & INTERESTING CONCEPTS: in each section add one "🚀 Beyond the textbook:" box — a genuinely interesting modern or Indian connection (ISRO, UPI, cricket physics, monsoon, chandrayaan, EV batteries, AI, everyday gadgets) that links the concept to the real world. Keep it short and mind-blowing, and mark clearly that it is extra (not asked in exam).
 - detailedNotes: 6-10 TOPIC sections covering the full chapter. For EACH topic's "content", write minimum 3-4 paragraphs in this exact order:
     1) WHAT is it (define simply)
     2) WHY does it happen / why did it happen (cause)
