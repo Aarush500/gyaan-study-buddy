@@ -12,7 +12,7 @@ import { AttendanceCard } from '@/components/dashboard/AttendanceCard';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { getExams } from '@/lib/exams';
 import { pushNotification } from '@/lib/notifications';
-import { MessageCircleQuestion, FileCheck, LogOut } from 'lucide-react';
+import { MessageCircleQuestion, LogOut } from 'lucide-react';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useT } from '@/lib/i18n';
 
@@ -53,7 +53,6 @@ export default function Dashboard() {
   const boardExam = exams.find((e) => e.boardYear) || exams[0];
 
   const quickActions = [
-    { to: '/verify', icon: FileCheck, label: t('verifyMyNotes') },
     { to: '#', icon: MessageCircleQuestion, label: t('askDoubtSoon') },
   ];
 
