@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, callEdgeFunction } from '@/lib/supabase';
 import { buildTopics, type Topic } from '@/lib/topics';
@@ -17,7 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import {
   ArrowLeft, ArrowRight, BookOpen, MessageCircleQuestion, Sparkles, TriangleAlert as AlertTriangle,
-  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, Circle,
+  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, Circle, RotateCcw, X,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
@@ -28,6 +28,7 @@ export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
   const { profile, user } = useAuth();
   const { t } = useT();
+  const navigate = useNavigate();
   const [notes, setNotes] = useState<ChapterNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,11 +40,55 @@ export default function Chapter() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [selectedMcq, setSelectedMcq] = useState<Record<number, string>>({});
+  const [resumePoint, setResumePoint] = useState<{ index: number; scrollY: number } | null>(null);
+  const restoredRef = useRef(false);
 
   const chapterName = decodeURIComponent(chapterId || '');
   const subjectName = subjectId || '';
   const topics = buildTopics(notes);
   const activeTopic: Topic | undefined = topics[current];
+  const saveKey = `gyaan:resume:${user?.id || 'guest'}:${subjectName}:${chapterName}`;
+
+  // ---- Autosave: remember the exact topic + scroll position, restore on return ----
+  useEffect(() => {
+    if (restoredRef.current || !topics.length) return;
+    restoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(saveKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { index: number; scrollY: number };
+      if (typeof saved?.index === 'number' && saved.index > 0 && saved.index < topics.length) {
+        setResumePoint({ index: saved.index, scrollY: saved.scrollY || 0 });
+      }
+    } catch { /* ignore corrupt autosave */ }
+  }, [topics.length, saveKey]);
+
+  useEffect(() => {
+    if (!topics.length) return;
+    const save = () => {
+      try {
+        localStorage.setItem(saveKey, JSON.stringify({ index: current, scrollY: window.scrollY, ts: Date.now() }));
+      } catch { /* storage full or blocked */ }
+    };
+    save();
+    const id = window.setInterval(save, 5000);
+    window.addEventListener('beforeunload', save);
+    document.addEventListener('visibilitychange', save);
+    return () => {
+      save();
+      window.clearInterval(id);
+      window.removeEventListener('beforeunload', save);
+      document.removeEventListener('visibilitychange', save);
+    };
+  }, [current, topics.length, saveKey]);
+
+  function resume() {
+    if (!resumePoint) return;
+    setCurrent(resumePoint.index);
+    const y = resumePoint.scrollY;
+    setResumePoint(null);
+    window.setTimeout(() => window.scrollTo({ top: y, behavior: 'smooth' }), 120);
+  }
 
   const fetchNotes = useCallback(async (forceRefresh = false) => {
     setLoading(true);
@@ -90,22 +135,6 @@ export default function Chapter() {
   }, [user, subjectName, chapterName, profile]);
 
   useEffect(() => { loadUserState(); }, [loadUserState]);
-
-  async function handleUnlock() {
-    if (!user) return;
-    // Unlocks are granted only by the server after a verified payment.
-    const { data, error } = await callEdgeFunction<{ unlocked?: boolean; validUntil?: string }>(
-      'unlock-chapter',
-      { subject: subjectName, chapterName, classLevel: profile?.class_level || '9' },
-    );
-    if (error || !data?.unlocked) {
-      toast.error(error || 'Could not unlock. Try again.');
-      return;
-    }
-    setUnlocked(true);
-    setValidUntil(data.validUntil ?? null);
-    toast.success('Unlocked! Valid till ' + data.validUntil);
-  }
 
   async function toggleBookmark(t: Topic) {
     if (!user) return;
@@ -232,6 +261,15 @@ export default function Chapter() {
             {unlocked && expiryDays != null && (
               <Badge variant="secondary" className="hidden sm:flex">Valid {expiryDays}d</Badge>
             )}
+            <Button
+              size="sm"
+              onClick={() => setReportOpen(true)}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              title="Report a problem with this content"
+            >
+              <Flag className="w-4 h-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Report</span>
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden glass">
@@ -273,6 +311,21 @@ export default function Chapter() {
 
           {activeTopic && (
             <div className="relative">
+              {resumePoint && (
+                <div className="mb-4 flex items-center gap-3 rounded-2xl border-2 border-primary/40 bg-primary-soft px-4 py-3">
+                  <RotateCcw className="w-4 h-4 text-primary shrink-0" />
+                  <div className="flex-1 text-sm">
+                    <span className="font-semibold">Pick up where you left off</span>
+                    <span className="text-muted-foreground"> — {topics[resumePoint.index]?.title}</span>
+                  </div>
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={resume}>
+                    Resume
+                  </Button>
+                  <button onClick={() => setResumePoint(null)} className="text-muted-foreground hover:text-foreground" title="Dismiss">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-xl font-extrabold">{activeTopic.title}</h2>
                 <div className="flex items-center gap-1">
@@ -286,35 +339,32 @@ export default function Chapter() {
                     onClick={() => toggleBookmark(activeTopic)} title="Bookmark">
                     <Bookmark className={`w-4 h-4 ${bookmarks.has(activeTopic.key) ? 'fill-weak text-weak' : ''}`} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="glass rounded-full"
-                    onClick={() => setReportOpen(true)} title="Report an error">
-                    <Flag className="w-4 h-4" />
-                  </Button>
                 </div>
               </div>
 
-              <div className={isLocked(current) ? 'relative' : ''}>
-                <div className={isLocked(current) ? 'blur-md select-none pointer-events-none max-h-[480px] overflow-hidden' : ''}>
-                  {notes && <TopicBody notes={notes} topic={activeTopic} selectedMcq={selectedMcq} setSelectedMcq={setSelectedMcq} />}
-                </div>
-
-                {isLocked(current) && (
-                  <div className="absolute inset-0 grid place-items-center p-4">
-                    <div className="glass-strong rounded-2xl p-6 text-center max-w-sm w-full">
-                      <div className="mx-auto w-12 h-12 rounded-full glass grid place-items-center mb-3">
-                        <Lock className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
-                      <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
-                      <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
-                      <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid till 30 Apr</div>
-                      <Button className="w-full mt-4 glass-btn text-primary-foreground h-11" onClick={handleUnlock}>
-                        {t('unlockFor')}
-                      </Button>
+              {isLocked(current) ? (
+                <div className="space-y-5">
+                  {/* Locked topics still show the key points so students see real value first */}
+                  {notes && <LockedPreview notes={notes} />}
+                  <div className="rounded-2xl border-2 border-primary bg-primary-soft p-6 text-center">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-primary grid place-items-center mb-3">
+                      <Lock className="w-5 h-5 text-primary-foreground" />
                     </div>
+                    <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
+                    <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
+                    <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid for a full year</div>
+                    <Button
+                      className="w-full max-w-xs mx-auto mt-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
+                      onClick={() => navigate(`/unlock/${subjectId}/${chapterId}`)}
+                    >
+                      {t('unlockFor')} <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                notes && <TopicBody notes={notes} topic={activeTopic} selectedMcq={selectedMcq} setSelectedMcq={setSelectedMcq} />
+              )}
 
               <div className="mt-8 pt-4 border-t border-border/40">
                 <div className="flex items-center justify-between">
@@ -375,6 +425,31 @@ export default function Chapter() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function LockedPreview({ notes }: { notes: ChapterNote }) {
+  return (
+    <Card className="glass">
+      <CardHeader><CardTitle className="text-lg">Key Points (free preview)</CardTitle></CardHeader>
+      <CardContent>
+        <ul className="space-y-3">
+          {(notes.keyPoints || []).map((kp, i) => (
+            <li key={i} className="flex gap-3">
+              <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" />
+              <div>
+                <span className="font-medium">{kp.point}</span>
+                <p className="text-sm text-muted-foreground mt-1">{kp.explanation}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="text-sm text-muted-foreground mt-5">
+          That's the summary. The full topic — deep explanations, notes between paragraphs, numericals,
+          diagrams, 3D visuals and the questions that definitely come in the exam — is right below.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
