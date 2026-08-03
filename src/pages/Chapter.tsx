@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, callEdgeFunction } from '@/lib/supabase';
 import { buildTopics, type Topic } from '@/lib/topics';
@@ -17,7 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import {
   ArrowLeft, ArrowRight, BookOpen, MessageCircleQuestion, Sparkles, TriangleAlert as AlertTriangle,
-  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, Circle,
+  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, Circle, RotateCcw, X,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { ChapterNote } from '@/types';
@@ -28,6 +28,7 @@ export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
   const { profile, user } = useAuth();
   const { t } = useT();
+  const navigate = useNavigate();
   const [notes, setNotes] = useState<ChapterNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,11 +40,55 @@ export default function Chapter() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [selectedMcq, setSelectedMcq] = useState<Record<number, string>>({});
+  const [resumePoint, setResumePoint] = useState<{ index: number; scrollY: number } | null>(null);
+  const restoredRef = useRef(false);
 
   const chapterName = decodeURIComponent(chapterId || '');
   const subjectName = subjectId || '';
   const topics = buildTopics(notes);
   const activeTopic: Topic | undefined = topics[current];
+  const saveKey = `gyaan:resume:${user?.id || 'guest'}:${subjectName}:${chapterName}`;
+
+  // ---- Autosave: remember the exact topic + scroll position, restore on return ----
+  useEffect(() => {
+    if (restoredRef.current || !topics.length) return;
+    restoredRef.current = true;
+    try {
+      const raw = localStorage.getItem(saveKey);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { index: number; scrollY: number };
+      if (typeof saved?.index === 'number' && saved.index > 0 && saved.index < topics.length) {
+        setResumePoint({ index: saved.index, scrollY: saved.scrollY || 0 });
+      }
+    } catch { /* ignore corrupt autosave */ }
+  }, [topics.length, saveKey]);
+
+  useEffect(() => {
+    if (!topics.length) return;
+    const save = () => {
+      try {
+        localStorage.setItem(saveKey, JSON.stringify({ index: current, scrollY: window.scrollY, ts: Date.now() }));
+      } catch { /* storage full or blocked */ }
+    };
+    save();
+    const id = window.setInterval(save, 5000);
+    window.addEventListener('beforeunload', save);
+    document.addEventListener('visibilitychange', save);
+    return () => {
+      save();
+      window.clearInterval(id);
+      window.removeEventListener('beforeunload', save);
+      document.removeEventListener('visibilitychange', save);
+    };
+  }, [current, topics.length, saveKey]);
+
+  function resume() {
+    if (!resumePoint) return;
+    setCurrent(resumePoint.index);
+    const y = resumePoint.scrollY;
+    setResumePoint(null);
+    window.setTimeout(() => window.scrollTo({ top: y, behavior: 'smooth' }), 120);
+  }
 
   const fetchNotes = useCallback(async (forceRefresh = false) => {
     setLoading(true);
