@@ -311,6 +311,21 @@ export default function Chapter() {
 
           {activeTopic && (
             <div className="relative">
+              {resumePoint && (
+                <div className="mb-4 flex items-center gap-3 rounded-2xl border-2 border-primary/40 bg-primary-soft px-4 py-3">
+                  <RotateCcw className="w-4 h-4 text-primary shrink-0" />
+                  <div className="flex-1 text-sm">
+                    <span className="font-semibold">Pick up where you left off</span>
+                    <span className="text-muted-foreground"> — {topics[resumePoint.index]?.title}</span>
+                  </div>
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={resume}>
+                    Resume
+                  </Button>
+                  <button onClick={() => setResumePoint(null)} className="text-muted-foreground hover:text-foreground" title="Dismiss">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-display text-xl font-extrabold">{activeTopic.title}</h2>
                 <div className="flex items-center gap-1">
