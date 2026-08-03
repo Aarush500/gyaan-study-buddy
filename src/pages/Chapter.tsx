@@ -277,6 +277,15 @@ export default function Chapter() {
             {unlocked && expiryDays != null && (
               <Badge variant="secondary" className="hidden sm:flex">Valid {expiryDays}d</Badge>
             )}
+            <Button
+              size="sm"
+              onClick={() => setReportOpen(true)}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              title="Report a problem with this content"
+            >
+              <Flag className="w-4 h-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Report</span>
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden glass">
@@ -331,35 +340,32 @@ export default function Chapter() {
                     onClick={() => toggleBookmark(activeTopic)} title="Bookmark">
                     <Bookmark className={`w-4 h-4 ${bookmarks.has(activeTopic.key) ? 'fill-weak text-weak' : ''}`} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="glass rounded-full"
-                    onClick={() => setReportOpen(true)} title="Report an error">
-                    <Flag className="w-4 h-4" />
-                  </Button>
                 </div>
               </div>
 
-              <div className={isLocked(current) ? 'relative' : ''}>
-                <div className={isLocked(current) ? 'blur-md select-none pointer-events-none max-h-[480px] overflow-hidden' : ''}>
-                  {notes && <TopicBody notes={notes} topic={activeTopic} selectedMcq={selectedMcq} setSelectedMcq={setSelectedMcq} />}
-                </div>
-
-                {isLocked(current) && (
-                  <div className="absolute inset-0 grid place-items-center p-4">
-                    <div className="glass-strong rounded-2xl p-6 text-center max-w-sm w-full">
-                      <div className="mx-auto w-12 h-12 rounded-full glass grid place-items-center mb-3">
-                        <Lock className="w-5 h-5 text-primary" />
-                      </div>
-                      <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
-                      <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
-                      <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
-                      <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid till 30 Apr</div>
-                      <Button className="w-full mt-4 glass-btn text-primary-foreground h-11" onClick={handleUnlock}>
-                        {t('unlockFor')}
-                      </Button>
+              {isLocked(current) ? (
+                <div className="space-y-5">
+                  {/* Locked topics still show the key points so students see real value first */}
+                  {notes && <LockedPreview notes={notes} />}
+                  <div className="rounded-2xl border-2 border-primary bg-primary-soft p-6 text-center">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-primary grid place-items-center mb-3">
+                      <Lock className="w-5 h-5 text-primary-foreground" />
                     </div>
+                    <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
+                    <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
+                    <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid for a full year</div>
+                    <Button
+                      className="w-full max-w-xs mx-auto mt-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
+                      onClick={() => navigate(`/unlock/${subjectId}/${chapterId}`)}
+                    >
+                      {t('unlockFor')} <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                notes && <TopicBody notes={notes} topic={activeTopic} selectedMcq={selectedMcq} setSelectedMcq={setSelectedMcq} />
+              )}
 
               <div className="mt-8 pt-4 border-t border-border/40">
                 <div className="flex items-center justify-between">
