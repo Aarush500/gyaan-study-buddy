@@ -136,22 +136,6 @@ export default function Chapter() {
 
   useEffect(() => { loadUserState(); }, [loadUserState]);
 
-  async function handleUnlock() {
-    if (!user) return;
-    // Unlocks are granted only by the server after a verified payment.
-    const { data, error } = await callEdgeFunction<{ unlocked?: boolean; validUntil?: string }>(
-      'unlock-chapter',
-      { subject: subjectName, chapterName, classLevel: profile?.class_level || '9' },
-    );
-    if (error || !data?.unlocked) {
-      toast.error(error || 'Could not unlock. Try again.');
-      return;
-    }
-    setUnlocked(true);
-    setValidUntil(data.validUntil ?? null);
-    toast.success('Unlocked! Valid till ' + data.validUntil);
-  }
-
   async function toggleBookmark(t: Topic) {
     if (!user) return;
     const has = bookmarks.has(t.key);
