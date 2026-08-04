@@ -504,15 +504,19 @@ Deno.serve(async (req: Request) => {
       messages.push({ role: "user", content: buildRepairPrompt(issues) });
     }
 
-    // Cache the result
-    await supabase.from("chapter_notes_cache").insert({
+    // Only cache content that passed every depth check — thin content is never stored.
+    if (issues.length === 0) {
+      await supabase.from("chapter_notes_cache").insert({
       cache_key: cacheKey,
       subject,
       chapter_name: chapterName,
       class_level: classLevel,
       language: lang,
       content: notes,
-    });
+      });
+    } else {
+      console.warn("Serving unverified notes after 3 attempts:", issues.slice(0, 5).join(" | "));
+    }
 
     return new Response(JSON.stringify({ notes: gateNotes(notes, unlocked), cached: false, locked: !unlocked }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
