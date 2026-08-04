@@ -241,7 +241,7 @@ export default function Chapter() {
             {completed.has(t.key)
               ? <CheckCircle className="w-4 h-4 shrink-0 text-strong" />
               : <span className="text-xs w-5 shrink-0 opacity-60 text-center">{i + 1}</span>}
-            <span className="flex-1 line-clamp-2">{t.title}</span>
+            <span className="flex-1 break-words">{t.title}</span>
             {bookmarks.has(t.key) && <Bookmark className="w-3.5 h-3.5 fill-weak text-weak shrink-0" />}
             {locked && <Lock className="w-3.5 h-3.5 shrink-0 opacity-60" />}
           </button>
@@ -276,8 +276,9 @@ export default function Chapter() {
                   <Menu className="w-4 h-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="app-bg w-80">
-                <div className="mt-6 mb-3 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
+              <SheetContent side="left" className="app-bg w-80 overflow-y-auto">
+                <div className="mt-6 mb-1 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
+                <div className="mb-3 text-sm font-semibold leading-snug break-words">{notes?.title || chapterName}</div>
                 {Sidebar}
               </SheetContent>
             </Sheet>
@@ -292,8 +293,9 @@ export default function Chapter() {
 
       <div className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-[260px_1fr] gap-6">
         <aside className="hidden lg:block">
-          <div className="glass rounded-2xl p-3 sticky top-20">
-            <div className="px-2 pb-2 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
+          <div className="glass rounded-2xl p-3 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <div className="px-2 pb-1 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
+            <div className="px-2 pb-2 text-sm font-semibold leading-snug break-words">{notes?.title || chapterName}</div>
             <div className="px-2 pb-3">
               <Progress value={progressPct} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">{completed.size}/{topics.length} done • {progressPct}%</p>

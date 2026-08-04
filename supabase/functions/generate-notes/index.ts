@@ -168,7 +168,27 @@ ${buildSyllabusGuidance(subject, classLevel)}
 - Prefer thoroughness over brevity everywhere. If in doubt, write MORE, not less.
 
 ================= LENGTH, DEPTH & ANTI-BORING (CRITICAL) =================
-- TARGET: a serious student should need ~2 hours to read this chapter. Total content across all detailedNotes sections must be roughly 6000-8000 words (excluding diagrams and questions). Each detailedNotes section = 800-1000+ words. Cover every topic fully — no "refer to textbook".
+- HARD MINIMUM: 5000 words of actual flowing explanation across detailedNotes (headings, question lists and labels do NOT count). TARGET 7000-8000 words. Anything under 5000 words is a FAILED generation.
+- Each detailedNotes section = 800-1000+ words of real explanation. Never fewer than 400 words for any topic. Cover every topic fully — no "refer to textbook".
+
+================= THE 7-PART TOPIC CONTRACT (ABSOLUTELY MANDATORY) =================
+Every single detailedNotes section's "content" must contain ALL 7 parts, in this order, and must be written as flowing paragraphs (not lists):
+  1) HOOK (3-5 lines): a real-life scenario, surprising fact or question. NEVER start with a definition or "In this topic we will learn".
+  2) SIMPLE DEFINITION (2-3 lines) written for a 13-year-old, then immediately the technical NCERT definition on a new line prefixed "📘 EXAM DEFINITION: ".
+  3) FULL EXPLANATION (minimum 400 words, target 600-900): what it is, how it was discovered, why it works, what would happen without it, its significance, its India connection. Paragraphs of max 4 lines. Never more than 3 plain paragraphs in a row without a box/callout/quick check.
+  4) INDIAN COMPARISON (5-8 lines) on its own line prefixed "🇮🇳 THINK OF IT LIKE THIS: " — an accurate everyday-Indian-life comparison (chai, local train, cricket, ration queue, WhatsApp group, auto rickshaw meter, tiffin, IPL auction). This is the moment the concept clicks — make it genuinely explanatory, not decoration.
+  5) DIAGRAM DESCRIPTION where applicable (also fill "diagramDescription").
+  6) EXAM FOCUS for THIS topic (5-8 lines) prefixed "🎯 EXAM FOCUS: " — what the examiner asks about THIS topic, typical marks, keywords the examiner hunts for, the most common mistake, and what a perfect 3-mark and 5-mark answer looks like.
+  7) QUICK CHECK prefixed "❓ QUICK CHECK: " — one application (not recall) question, then on the next line "✅ ANSWER: " with the model answer.
+A section missing ANY of these 7 parts is incomplete and unacceptable.
+
+================= ABSOLUTELY FORBIDDEN =================
+- Bullet lists as the main explanation of a concept (allowed ONLY in keyPoints, questions and quickRevision). Explain in paragraphs.
+- One-line explanations of complex concepts. Every complex concept gets 200+ words.
+- Listing topic names without explaining them (a table of contents is not a chapter).
+- Textbook/NCERT phrasing copied or near-copied. Paraphrase and simplify EVERYTHING.
+- Content that stops abruptly with no exam focus / quick check / closing line.
+- Generic non-Indian examples ("a ball rolling down a hill"). Make every example specific and Indian.
 - ANTI-BORING RULE (non-negotiable): never write more than 3 plain paragraphs in a row. After every ~3 paragraphs SWITCH format inside "content" — use a numbered list, bullet list, a story box, a "Fun fact:" box, an "Examiner tip:" sidebar, a "Quick check:" question, a "Common mistake:" warning, a memory-trick line, a "Real-life connection:" box, or a before/after ("Students think X → Actually Y") comparison. Constant variety keeps the brain engaged.
 - MICRO-MOTIVATION: every few paragraphs drop one short encouraging line ("Most students skip this part — you are not most students.").
 - BREAK REMINDERS: after roughly every 3500 words of content, insert this EXACT line on its own inside the content (prefix with "⏸️ BREAK REMINDER: "): "🧠 You have been reading for 45 minutes. Your brain needs rest to actually store what you just learned. Close the app right now. Drink some water. Walk around for 10 minutes. Come back fresh. The chapter will still be here. Students who take breaks score higher than students who push through — this is not a suggestion, it is science." A ~7000-word chapter gets exactly 2 of these (middle and near end).
@@ -261,6 +281,97 @@ Return a JSON object with EXACTLY this structure (no markdown, pure JSON):
 Make keyPoints have 8-10 items. Make detailedNotes have 6-10 detailed topic sections covering the FULL chapter, each with a clear diagramDescription where a diagram helps and a memoryTrick. Make mcqs have exactly 5 questions. Make commonMistakes have 3-4 items. Make quickRevision have 6-8 items. Make it so detailed and engaging that students actually enjoy studying this chapter.`;
 }
 
+const SYSTEM_PROMPT = `You are the best CBSE teacher in India with 25 years of experience. You know exactly what comes in board exams, exactly where students struggle, and exactly how to explain a concept so a student who has never seen it before understands it completely in one reading.
+
+Your job is NOT to summarise. Your job is NOT to list topics. Your job is to TEACH — completely, thoroughly, engagingly.
+
+Minimum 5000 words of actual explanatory content. Every topic needs a hook, a simple definition, a 400+ word explanation, an Indian comparison, a diagram description where applicable, an exam focus section and a quick check question. Short paragraphs (max 4 lines). Never more than 3 plain paragraphs in a row. Indian examples only — cricket, chai, biryani, Bollywood, IPL, auto rickshaw, street food, mom scolding, report card anxiety, school canteen, competitive cousin. If a sentence sounds like it belongs in an NCERT book, rewrite it.
+
+The student is paying ₹39 for this chapter. It must be better than BYJU'S, better than Vedantu, better than their school teacher's notes and better than the NCERT textbook itself.
+
+You output ONLY valid JSON. No markdown, no code fences, no preamble.`;
+
+async function callAI(messages: { role: string; content: string }[]) {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages,
+      response_format: { type: "json_object" },
+      max_tokens: 32000,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    const err = new Error(body) as Error & { status: number };
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+function parseNotes(raw: string): any | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try { return JSON.parse(m[0]); } catch { return null; }
+  }
+}
+
+const words = (s: string) => (s || "").trim().split(/\s+/).filter(Boolean).length;
+
+// Depth verification — the content must actually teach, not list.
+function verifyNotes(notes: any): string[] {
+  const issues: string[] = [];
+  const sections: any[] = Array.isArray(notes?.detailedNotes) ? notes.detailedNotes : [];
+
+  if (sections.length < 5) {
+    issues.push(`Only ${sections.length} topic sections. Produce at least 6 full topic sections covering the whole chapter.`);
+  }
+
+  const total = sections.reduce((n, s) => n + words(s?.content), 0);
+  if (total < 4000) {
+    issues.push(`Total explanation is only ~${total} words. It MUST be at least 5000 words. Expand EVERY topic explanation substantially — do not add new topics, deepen the existing ones.`);
+  }
+
+  sections.forEach((s, i) => {
+    const c: string = s?.content || "";
+    const name = s?.heading || `Topic ${i + 1}`;
+    if (words(c) < 400) issues.push(`Topic "${name}" has only ~${words(c)} words — expand it to at least 500 words of real explanation.`);
+    if (!/🇮🇳|THINK OF IT LIKE THIS/i.test(c)) issues.push(`Topic "${name}" is missing its "🇮🇳 THINK OF IT LIKE THIS:" Indian comparison — add it.`);
+    if (!/🎯|EXAM FOCUS/i.test(c)) issues.push(`Topic "${name}" is missing its "🎯 EXAM FOCUS:" section — add it.`);
+    if (!/❓|QUICK CHECK/i.test(c)) issues.push(`Topic "${name}" is missing its "❓ QUICK CHECK:" question with a "✅ ANSWER:" — add it.`);
+    // Bullet points used as the main explanation
+    const lines = c.split("\n").filter((l) => l.trim());
+    const bullets = lines.filter((l) => /^\s*([-*•]|\d+[.)])\s+/.test(l)).length;
+    if (lines.length > 6 && bullets / lines.length > 0.4) {
+      issues.push(`Topic "${name}" is mostly bullet points. Rewrite the explanation as flowing paragraphs; bullets are only allowed for key points and question lists.`);
+    }
+  });
+
+  const kp: any[] = Array.isArray(notes?.keyPoints) ? notes.keyPoints : [];
+  if (kp.length < 8) issues.push("Provide 8-10 keyPoints, each with a 120-200 word elaborated explanation.");
+  if (kp.some((k) => words(k?.explanation) < 80)) issues.push("Some keyPoints have thin explanations — every keyPoint explanation must be a 120-200 word mini-lesson.");
+
+  return issues.slice(0, 25);
+}
+
+function buildRepairPrompt(issues: string[]): string {
+  return `Your previous generation FAILED the quality check. Fix every problem below and return the COMPLETE corrected chapter as the same JSON structure (all fields, nothing dropped, nothing shortened):
+
+${issues.map((i, n) => `${n + 1}. ${i}`).join("\n")}
+
+Rules for the fix: keep everything that was already good, only expand and add. Every topic must have all 7 parts (hook, simple definition + 📘 EXAM DEFINITION, 400+ word explanation, 🇮🇳 THINK OF IT LIKE THIS, diagram description where applicable, 🎯 EXAM FOCUS, ❓ QUICK CHECK + ✅ ANSWER). Write paragraphs, not bullet lists. Minimum 5000 words total. Return pure JSON only.`;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -351,71 +462,61 @@ Deno.serve(async (req: Request) => {
       await supabase.from("chapter_notes_cache").delete().eq("cache_key", cacheKey);
     }
 
-    // Generate with Lovable AI Gateway
+    // Generate with Lovable AI Gateway, then verify depth and repair if too thin.
     const prompt = buildPrompt(subject, chapterName, classLevel, lang, style);
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: "You output only valid JSON. No markdown, no code fences." },
-          { role: "user", content: prompt },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 32000,
-      }),
-    });
+    let notes: any = null;
+    let issues: string[] = [];
+    const messages: { role: string; content: string }[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: prompt },
+    ];
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("AI gateway error:", aiRes.status, errText);
-      const status = aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 502;
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      let result;
+      try {
+        result = await callAI(messages);
+      } catch (e) {
+        const status = (e as any)?.status;
+        console.error("AI gateway error:", status, (e as any)?.message);
+        if (notes) break; // keep what we already have
+        return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+          status: status === 429 ? 429 : status === 402 ? 402 : 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    const aiData = await aiRes.json();
-    const rawText = aiData.choices?.[0]?.message?.content;
-
-    if (!rawText) {
-      return new Response(JSON.stringify({ error: "Empty response from AI" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    let notes: unknown;
-    try {
-      notes = JSON.parse(rawText);
-    } catch {
-      // Try to extract JSON from text
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        notes = JSON.parse(jsonMatch[0]);
-      } else {
+      const parsed = parseNotes(result);
+      if (!parsed) {
+        if (notes) break;
         return new Response(JSON.stringify({ error: "Could not parse AI response as JSON" }), {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      notes = parsed;
+      issues = verifyNotes(parsed);
+      if (issues.length === 0) break;
+
+      console.log(`Depth check failed (attempt ${attempt + 1}):`, issues.join(" | "));
+      messages.push({ role: "assistant", content: JSON.stringify(parsed).slice(0, 12000) });
+      messages.push({ role: "user", content: buildRepairPrompt(issues) });
     }
 
-    // Cache the result
-    await supabase.from("chapter_notes_cache").insert({
+    // Only cache content that passed every depth check — thin content is never stored.
+    if (issues.length === 0) {
+      await supabase.from("chapter_notes_cache").insert({
       cache_key: cacheKey,
       subject,
       chapter_name: chapterName,
       class_level: classLevel,
       language: lang,
       content: notes,
-    });
+      });
+    } else {
+      console.warn("Serving unverified notes after 3 attempts:", issues.slice(0, 5).join(" | "));
+    }
 
     return new Response(JSON.stringify({ notes: gateNotes(notes, unlocked), cached: false, locked: !unlocked }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

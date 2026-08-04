@@ -4,10 +4,13 @@ import { Sparkles } from "lucide-react";
 import { AnimatedProgress } from "@/components/motion/AnimatedProgress";
 
 const MESSAGES = [
-  "Reading the NCERT textbook so you don't have to",
-  "Making boring content interesting",
-  "Adding Indian examples",
-  "Almost done — this chapter is going to slap.",
+  "Reading the NCERT textbook so you don't have to...",
+  "Adding Indian examples your teacher never thought of...",
+  "Making sure every concept actually makes sense...",
+  "Writing exam tips that actually help...",
+  "Almost done — this chapter is going to be different from anything you've read before...",
+  "Adding memory tricks, diagram descriptions, and quick checks...",
+  "Quality checking everything before showing you...",
 ];
 
 /** Dedicated "Cooking up your notes" screen with rotating messages + smooth progress. */
@@ -18,11 +21,15 @@ export function GeneratingNotes() {
   useEffect(() => {
     const msgTimer = setInterval(() => {
       setMsgIndex((i) => (i + 1) % MESSAGES.length);
-    }, 3000);
-    // Smoothly creep toward 95% so it never looks stuck or finished early.
+    }, 5000);
+    // Rise quickly to 90%, then crawl for the verification step — never jumpy.
     const progTimer = setInterval(() => {
-      setProgress((p) => (p >= 95 ? 95 : p + Math.max(1, (95 - p) * 0.08)));
-    }, 400);
+      setProgress((p) => {
+        if (p >= 98) return 98;
+        const step = p < 90 ? (90 - p) * 0.06 + 0.4 : 0.06;
+        return Math.min(98, p + step);
+      });
+    }, 250);
     return () => {
       clearInterval(msgTimer);
       clearInterval(progTimer);
