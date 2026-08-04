@@ -371,60 +371,46 @@ Deno.serve(async (req: Request) => {
       await supabase.from("chapter_notes_cache").delete().eq("cache_key", cacheKey);
     }
 
-    // Generate with Lovable AI Gateway
+    // Generate with Lovable AI Gateway, then verify depth and repair if too thin.
     const prompt = buildPrompt(subject, chapterName, classLevel, lang, style);
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: "You output only valid JSON. No markdown, no code fences." },
-          { role: "user", content: prompt },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 32000,
-      }),
-    });
+    let notes: any = null;
+    let issues: string[] = [];
+    const messages: { role: string; content: string }[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: prompt },
+    ];
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("AI gateway error:", aiRes.status, errText);
-      const status = aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 502;
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      let result;
+      try {
+        result = await callAI(messages);
+      } catch (e) {
+        const status = (e as any)?.status;
+        console.error("AI gateway error:", status, (e as any)?.message);
+        if (notes) break; // keep what we already have
+        return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+          status: status === 429 ? 429 : status === 402 ? 402 : 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    const aiData = await aiRes.json();
-    const rawText = aiData.choices?.[0]?.message?.content;
-
-    if (!rawText) {
-      return new Response(JSON.stringify({ error: "Empty response from AI" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    let notes: unknown;
-    try {
-      notes = JSON.parse(rawText);
-    } catch {
-      // Try to extract JSON from text
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        notes = JSON.parse(jsonMatch[0]);
-      } else {
+      const parsed = parseNotes(result);
+      if (!parsed) {
+        if (notes) break;
         return new Response(JSON.stringify({ error: "Could not parse AI response as JSON" }), {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      notes = parsed;
+      issues = verifyNotes(parsed);
+      if (issues.length === 0) break;
+
+      console.log(`Depth check failed (attempt ${attempt + 1}):`, issues.join(" | "));
+      messages.push({ role: "assistant", content: JSON.stringify(parsed).slice(0, 12000) });
+      messages.push({ role: "user", content: buildRepairPrompt(issues) });
     }
 
     // Cache the result
