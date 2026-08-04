@@ -281,6 +281,97 @@ Return a JSON object with EXACTLY this structure (no markdown, pure JSON):
 Make keyPoints have 8-10 items. Make detailedNotes have 6-10 detailed topic sections covering the FULL chapter, each with a clear diagramDescription where a diagram helps and a memoryTrick. Make mcqs have exactly 5 questions. Make commonMistakes have 3-4 items. Make quickRevision have 6-8 items. Make it so detailed and engaging that students actually enjoy studying this chapter.`;
 }
 
+const SYSTEM_PROMPT = `You are the best CBSE teacher in India with 25 years of experience. You know exactly what comes in board exams, exactly where students struggle, and exactly how to explain a concept so a student who has never seen it before understands it completely in one reading.
+
+Your job is NOT to summarise. Your job is NOT to list topics. Your job is to TEACH — completely, thoroughly, engagingly.
+
+Minimum 5000 words of actual explanatory content. Every topic needs a hook, a simple definition, a 400+ word explanation, an Indian comparison, a diagram description where applicable, an exam focus section and a quick check question. Short paragraphs (max 4 lines). Never more than 3 plain paragraphs in a row. Indian examples only — cricket, chai, biryani, Bollywood, IPL, auto rickshaw, street food, mom scolding, report card anxiety, school canteen, competitive cousin. If a sentence sounds like it belongs in an NCERT book, rewrite it.
+
+The student is paying ₹39 for this chapter. It must be better than BYJU'S, better than Vedantu, better than their school teacher's notes and better than the NCERT textbook itself.
+
+You output ONLY valid JSON. No markdown, no code fences, no preamble.`;
+
+async function callAI(messages: { role: string; content: string }[]) {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages,
+      response_format: { type: "json_object" },
+      max_tokens: 32000,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    const err = new Error(body) as Error & { status: number };
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
+function parseNotes(raw: string): any | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try { return JSON.parse(m[0]); } catch { return null; }
+  }
+}
+
+const words = (s: string) => (s || "").trim().split(/\s+/).filter(Boolean).length;
+
+// Depth verification — the content must actually teach, not list.
+function verifyNotes(notes: any): string[] {
+  const issues: string[] = [];
+  const sections: any[] = Array.isArray(notes?.detailedNotes) ? notes.detailedNotes : [];
+
+  if (sections.length < 5) {
+    issues.push(`Only ${sections.length} topic sections. Produce at least 6 full topic sections covering the whole chapter.`);
+  }
+
+  const total = sections.reduce((n, s) => n + words(s?.content), 0);
+  if (total < 4000) {
+    issues.push(`Total explanation is only ~${total} words. It MUST be at least 5000 words. Expand EVERY topic explanation substantially — do not add new topics, deepen the existing ones.`);
+  }
+
+  sections.forEach((s, i) => {
+    const c: string = s?.content || "";
+    const name = s?.heading || `Topic ${i + 1}`;
+    if (words(c) < 400) issues.push(`Topic "${name}" has only ~${words(c)} words — expand it to at least 500 words of real explanation.`);
+    if (!/🇮🇳|THINK OF IT LIKE THIS/i.test(c)) issues.push(`Topic "${name}" is missing its "🇮🇳 THINK OF IT LIKE THIS:" Indian comparison — add it.`);
+    if (!/🎯|EXAM FOCUS/i.test(c)) issues.push(`Topic "${name}" is missing its "🎯 EXAM FOCUS:" section — add it.`);
+    if (!/❓|QUICK CHECK/i.test(c)) issues.push(`Topic "${name}" is missing its "❓ QUICK CHECK:" question with a "✅ ANSWER:" — add it.`);
+    // Bullet points used as the main explanation
+    const lines = c.split("\n").filter((l) => l.trim());
+    const bullets = lines.filter((l) => /^\s*([-*•]|\d+[.)])\s+/.test(l)).length;
+    if (lines.length > 6 && bullets / lines.length > 0.4) {
+      issues.push(`Topic "${name}" is mostly bullet points. Rewrite the explanation as flowing paragraphs; bullets are only allowed for key points and question lists.`);
+    }
+  });
+
+  const kp: any[] = Array.isArray(notes?.keyPoints) ? notes.keyPoints : [];
+  if (kp.length < 8) issues.push("Provide 8-10 keyPoints, each with a 120-200 word elaborated explanation.");
+  if (kp.some((k) => words(k?.explanation) < 80)) issues.push("Some keyPoints have thin explanations — every keyPoint explanation must be a 120-200 word mini-lesson.");
+
+  return issues.slice(0, 25);
+}
+
+function buildRepairPrompt(issues: string[]): string {
+  return `Your previous generation FAILED the quality check. Fix every problem below and return the COMPLETE corrected chapter as the same JSON structure (all fields, nothing dropped, nothing shortened):
+
+${issues.map((i, n) => `${n + 1}. ${i}`).join("\n")}
+
+Rules for the fix: keep everything that was already good, only expand and add. Every topic must have all 7 parts (hook, simple definition + 📘 EXAM DEFINITION, 400+ word explanation, 🇮🇳 THINK OF IT LIKE THIS, diagram description where applicable, 🎯 EXAM FOCUS, ❓ QUICK CHECK + ✅ ANSWER). Write paragraphs, not bullet lists. Minimum 5000 words total. Return pure JSON only.`;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
