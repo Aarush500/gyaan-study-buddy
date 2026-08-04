@@ -241,7 +241,7 @@ export default function Chapter() {
             {completed.has(t.key)
               ? <CheckCircle className="w-4 h-4 shrink-0 text-strong" />
               : <span className="text-xs w-5 shrink-0 opacity-60 text-center">{i + 1}</span>}
-            <span className="flex-1 line-clamp-2">{t.title}</span>
+            <span className="flex-1 break-words">{t.title}</span>
             {bookmarks.has(t.key) && <Bookmark className="w-3.5 h-3.5 fill-weak text-weak shrink-0" />}
             {locked && <Lock className="w-3.5 h-3.5 shrink-0 opacity-60" />}
           </button>
