@@ -168,7 +168,27 @@ ${buildSyllabusGuidance(subject, classLevel)}
 - Prefer thoroughness over brevity everywhere. If in doubt, write MORE, not less.
 
 ================= LENGTH, DEPTH & ANTI-BORING (CRITICAL) =================
-- TARGET: a serious student should need ~2 hours to read this chapter. Total content across all detailedNotes sections must be roughly 6000-8000 words (excluding diagrams and questions). Each detailedNotes section = 800-1000+ words. Cover every topic fully — no "refer to textbook".
+- HARD MINIMUM: 5000 words of actual flowing explanation across detailedNotes (headings, question lists and labels do NOT count). TARGET 7000-8000 words. Anything under 5000 words is a FAILED generation.
+- Each detailedNotes section = 800-1000+ words of real explanation. Never fewer than 400 words for any topic. Cover every topic fully — no "refer to textbook".
+
+================= THE 7-PART TOPIC CONTRACT (ABSOLUTELY MANDATORY) =================
+Every single detailedNotes section's "content" must contain ALL 7 parts, in this order, and must be written as flowing paragraphs (not lists):
+  1) HOOK (3-5 lines): a real-life scenario, surprising fact or question. NEVER start with a definition or "In this topic we will learn".
+  2) SIMPLE DEFINITION (2-3 lines) written for a 13-year-old, then immediately the technical NCERT definition on a new line prefixed "📘 EXAM DEFINITION: ".
+  3) FULL EXPLANATION (minimum 400 words, target 600-900): what it is, how it was discovered, why it works, what would happen without it, its significance, its India connection. Paragraphs of max 4 lines. Never more than 3 plain paragraphs in a row without a box/callout/quick check.
+  4) INDIAN COMPARISON (5-8 lines) on its own line prefixed "🇮🇳 THINK OF IT LIKE THIS: " — an accurate everyday-Indian-life comparison (chai, local train, cricket, ration queue, WhatsApp group, auto rickshaw meter, tiffin, IPL auction). This is the moment the concept clicks — make it genuinely explanatory, not decoration.
+  5) DIAGRAM DESCRIPTION where applicable (also fill "diagramDescription").
+  6) EXAM FOCUS for THIS topic (5-8 lines) prefixed "🎯 EXAM FOCUS: " — what the examiner asks about THIS topic, typical marks, keywords the examiner hunts for, the most common mistake, and what a perfect 3-mark and 5-mark answer looks like.
+  7) QUICK CHECK prefixed "❓ QUICK CHECK: " — one application (not recall) question, then on the next line "✅ ANSWER: " with the model answer.
+A section missing ANY of these 7 parts is incomplete and unacceptable.
+
+================= ABSOLUTELY FORBIDDEN =================
+- Bullet lists as the main explanation of a concept (allowed ONLY in keyPoints, questions and quickRevision). Explain in paragraphs.
+- One-line explanations of complex concepts. Every complex concept gets 200+ words.
+- Listing topic names without explaining them (a table of contents is not a chapter).
+- Textbook/NCERT phrasing copied or near-copied. Paraphrase and simplify EVERYTHING.
+- Content that stops abruptly with no exam focus / quick check / closing line.
+- Generic non-Indian examples ("a ball rolling down a hill"). Make every example specific and Indian.
 - ANTI-BORING RULE (non-negotiable): never write more than 3 plain paragraphs in a row. After every ~3 paragraphs SWITCH format inside "content" — use a numbered list, bullet list, a story box, a "Fun fact:" box, an "Examiner tip:" sidebar, a "Quick check:" question, a "Common mistake:" warning, a memory-trick line, a "Real-life connection:" box, or a before/after ("Students think X → Actually Y") comparison. Constant variety keeps the brain engaged.
 - MICRO-MOTIVATION: every few paragraphs drop one short encouraging line ("Most students skip this part — you are not most students.").
 - BREAK REMINDERS: after roughly every 3500 words of content, insert this EXACT line on its own inside the content (prefix with "⏸️ BREAK REMINDER: "): "🧠 You have been reading for 45 minutes. Your brain needs rest to actually store what you just learned. Close the app right now. Drink some water. Walk around for 10 minutes. Come back fresh. The chapter will still be here. Students who take breaks score higher than students who push through — this is not a suggestion, it is science." A ~7000-word chapter gets exactly 2 of these (middle and near end).
