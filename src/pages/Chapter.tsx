@@ -293,7 +293,7 @@ export default function Chapter() {
 
       <div className="max-w-7xl mx-auto px-4 py-6 grid lg:grid-cols-[260px_1fr] gap-6">
         <aside className="hidden lg:block">
-          <div className="glass rounded-2xl p-3 sticky top-20">
+          <div className="glass rounded-2xl p-3 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="px-2 pb-1 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
             <div className="px-2 pb-2 text-sm font-semibold leading-snug break-words">{notes?.title || chapterName}</div>
             <div className="px-2 pb-3">
