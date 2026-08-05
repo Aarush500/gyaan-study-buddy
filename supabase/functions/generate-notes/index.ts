@@ -303,6 +303,7 @@ async function callAI(messages: { role: string; content: string }[]) {
       messages,
       response_format: { type: "json_object" },
       max_tokens: 32000,
+      stream: true,
     }),
   });
   if (!res.ok) {
@@ -311,8 +312,30 @@ async function callAI(messages: { role: string; content: string }[]) {
     err.status = res.status;
     throw err;
   }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  // Long generations must stream: a buffered call that returns no bytes for
+  // ~2 minutes is severed by the platform. Consume the SSE stream here.
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let content = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith("data:")) continue;
+      const payload = t.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const json = JSON.parse(payload);
+        content += json.choices?.[0]?.delta?.content ?? "";
+      } catch { /* partial chunk, ignore */ }
+    }
+  }
+  return content;
 }
 
 function parseNotes(raw: string): any | null {
@@ -465,60 +488,87 @@ Deno.serve(async (req: Request) => {
     // Generate with Lovable AI Gateway, then verify depth and repair if too thin.
     const prompt = buildPrompt(subject, chapterName, classLevel, lang, style);
 
-    let notes: any = null;
-    let issues: string[] = [];
-    const messages: { role: string; content: string }[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: prompt },
-    ];
+    const generate = async (): Promise<Record<string, unknown>> => {
+      let notes: any = null;
+      let issues: string[] = [];
+      const startedAt = Date.now();
+      // Leave enough headroom to finish and flush before the platform cap.
+      const REPAIR_DEADLINE_MS = 220_000;
+      const messages: { role: string; content: string }[] = [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ];
 
-    for (let attempt = 0; attempt < 3; attempt++) {
-      let result;
-      try {
-        result = await callAI(messages);
-      } catch (e) {
-        const status = (e as any)?.status;
-        console.error("AI gateway error:", status, (e as any)?.message);
-        if (notes) break; // keep what we already have
-        return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-          status: status === 429 ? 429 : status === 402 ? 402 : 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      for (let attempt = 0; attempt < 3; attempt++) {
+        let result: string;
+        try {
+          result = await callAI(messages);
+        } catch (e) {
+          const status = (e as any)?.status;
+          console.error("AI gateway error:", status, (e as any)?.message);
+          if (notes) break; // keep what we already have
+          return { error: "AI service unavailable", status: status === 429 ? 429 : status === 402 ? 402 : 502 };
+        }
+
+        const parsed = parseNotes(result);
+        if (!parsed) {
+          if (notes) break;
+          return { error: "Could not parse AI response as JSON", status: 502 };
+        }
+
+        notes = parsed;
+        issues = verifyNotes(parsed);
+        if (issues.length === 0) break;
+        if (Date.now() - startedAt > REPAIR_DEADLINE_MS) {
+          console.warn("Repair deadline reached — serving best available notes.");
+          break;
+        }
+
+        console.log(`Depth check failed (attempt ${attempt + 1}):`, issues.join(" | "));
+        messages.push({ role: "assistant", content: JSON.stringify(parsed).slice(0, 12000) });
+        messages.push({ role: "user", content: buildRepairPrompt(issues) });
       }
 
-      const parsed = parseNotes(result);
-      if (!parsed) {
-        if (notes) break;
-        return new Response(JSON.stringify({ error: "Could not parse AI response as JSON" }), {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      // Only cache content that passed every depth check — thin content is never stored.
+      if (issues.length === 0) {
+        await supabase.from("chapter_notes_cache").insert({
+          cache_key: cacheKey,
+          subject,
+          chapter_name: chapterName,
+          class_level: classLevel,
+          language: lang,
+          content: notes,
         });
+      } else {
+        console.warn("Serving unverified notes after 3 attempts:", issues.slice(0, 5).join(" | "));
       }
 
-      notes = parsed;
-      issues = verifyNotes(parsed);
-      if (issues.length === 0) break;
+      return { notes: gateNotes(notes, unlocked), cached: false, locked: !unlocked };
+    };
 
-      console.log(`Depth check failed (attempt ${attempt + 1}):`, issues.join(" | "));
-      messages.push({ role: "assistant", content: JSON.stringify(parsed).slice(0, 12000) });
-      messages.push({ role: "user", content: buildRepairPrompt(issues) });
-    }
+    // Generation can run for several minutes. Emit whitespace heartbeats so the
+    // connection is never idle (JSON.parse ignores leading whitespace), then
+    // write the real payload at the end.
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const beat = setInterval(() => {
+          try { controller.enqueue(encoder.encode(" ")); } catch { /* closed */ }
+        }, 10_000);
+        try {
+          const payload = await generate();
+          controller.enqueue(encoder.encode(JSON.stringify(payload)));
+        } catch (e) {
+          console.error("Generation failed:", e);
+          controller.enqueue(encoder.encode(JSON.stringify({ error: "Internal server error", status: 500 })));
+        } finally {
+          clearInterval(beat);
+          controller.close();
+        }
+      },
+    });
 
-    // Only cache content that passed every depth check — thin content is never stored.
-    if (issues.length === 0) {
-      await supabase.from("chapter_notes_cache").insert({
-      cache_key: cacheKey,
-      subject,
-      chapter_name: chapterName,
-      class_level: classLevel,
-      language: lang,
-      content: notes,
-      });
-    } else {
-      console.warn("Serving unverified notes after 3 attempts:", issues.slice(0, 5).join(" | "));
-    }
-
-    return new Response(JSON.stringify({ notes: gateNotes(notes, unlocked), cached: false, locked: !unlocked }), {
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
