@@ -27,11 +27,16 @@ export async function callEdgeFunction<T>(functionName: string, payload: Record<
       body: JSON.stringify(payload),
     });
 
-    const text = await response.text();
+    const text = (await response.text()).trim();
     const result = text ? JSON.parse(text) : {};
 
     if (!response.ok) {
       return { error: result.message || result.error || 'Request failed' };
+    }
+
+    // Streamed responses always return 200; errors are carried in the body.
+    if (result && typeof result === 'object' && result.error) {
+      return { error: result.message || result.error };
     }
 
     return { data: result };
