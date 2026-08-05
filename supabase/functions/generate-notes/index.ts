@@ -303,6 +303,7 @@ async function callAI(messages: { role: string; content: string }[]) {
       messages,
       response_format: { type: "json_object" },
       max_tokens: 32000,
+      stream: true,
     }),
   });
   if (!res.ok) {
@@ -311,8 +312,30 @@ async function callAI(messages: { role: string; content: string }[]) {
     err.status = res.status;
     throw err;
   }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "";
+  // Long generations must stream: a buffered call that returns no bytes for
+  // ~2 minutes is severed by the platform. Consume the SSE stream here.
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let content = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith("data:")) continue;
+      const payload = t.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const json = JSON.parse(payload);
+        content += json.choices?.[0]?.delta?.content ?? "";
+      } catch { /* partial chunk, ignore */ }
+    }
+  }
+  return content;
 }
 
 function parseNotes(raw: string): any | null {
