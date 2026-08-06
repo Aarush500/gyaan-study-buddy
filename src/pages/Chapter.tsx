@@ -107,8 +107,8 @@ export default function Chapter() {
   }, [subjectName, chapterName, profile]);
 
   useEffect(() => {
-    if (subjectName && chapterName) fetchNotes(false);
-  }, [subjectName, chapterName, profile]);
+    if (subjectName && chapterName && profile) fetchNotes(false);
+  }, [subjectName, chapterName, profile?.class_level, profile?.preferred_language, profile?.study_style, fetchNotes]);
 
   const loadUserState = useCallback(async () => {
     if (!user) return;

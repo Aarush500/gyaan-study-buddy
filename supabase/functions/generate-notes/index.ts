@@ -291,18 +291,21 @@ The student is paying ₹39 for this chapter. It must be better than BYJU'S, bet
 
 You output ONLY valid JSON. No markdown, no code fences, no preamble.`;
 
-async function callAI(messages: { role: string; content: string }[]) {
+async function callAI(messages: { role: string; content: string }[], timeoutMs = 115_000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Lovable-API-Key": LOVABLE_API_KEY || "",
     },
+    signal: controller.signal,
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
       messages,
       response_format: { type: "json_object" },
-      max_tokens: 32000,
+      max_tokens: 24000,
       stream: true,
     }),
   });
@@ -310,6 +313,7 @@ async function callAI(messages: { role: string; content: string }[]) {
     const body = await res.text();
     const err = new Error(body) as Error & { status: number };
     err.status = res.status;
+    clearTimeout(timeout);
     throw err;
   }
   // Long generations must stream: a buffered call that returns no bytes for
@@ -318,22 +322,26 @@ async function callAI(messages: { role: string; content: string }[]) {
   const decoder = new TextDecoder();
   let buffer = "";
   let content = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    for (const line of lines) {
-      const t = line.trim();
-      if (!t.startsWith("data:")) continue;
-      const payload = t.slice(5).trim();
-      if (!payload || payload === "[DONE]") continue;
-      try {
-        const json = JSON.parse(payload);
-        content += json.choices?.[0]?.delta?.content ?? "";
-      } catch { /* partial chunk, ignore */ }
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith("data:")) continue;
+        const payload = t.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const json = JSON.parse(payload);
+          content += json.choices?.[0]?.delta?.content ?? "";
+        } catch { /* malformed event, ignore */ }
+      }
     }
+  } finally {
+    clearTimeout(timeout);
   }
   return content;
 }
@@ -492,14 +500,15 @@ Deno.serve(async (req: Request) => {
       let notes: any = null;
       let issues: string[] = [];
       const startedAt = Date.now();
-      // Leave enough headroom to finish and flush before the platform cap.
-      const REPAIR_DEADLINE_MS = 220_000;
       const messages: { role: string; content: string }[] = [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: prompt },
       ];
 
-      for (let attempt = 0; attempt < 3; attempt++) {
+      // A second full 5,000+ word generation can cross the function's hard
+      // execution window. Generate once, validate, and serve the best result;
+      // validation failures are logged and are corrected on a future refresh.
+      for (let attempt = 0; attempt < 1; attempt++) {
         let result: string;
         try {
           result = await callAI(messages);
@@ -519,14 +528,7 @@ Deno.serve(async (req: Request) => {
         notes = parsed;
         issues = verifyNotes(parsed);
         if (issues.length === 0) break;
-        if (Date.now() - startedAt > REPAIR_DEADLINE_MS) {
-          console.warn("Repair deadline reached — serving best available notes.");
-          break;
-        }
-
-        console.log(`Depth check failed (attempt ${attempt + 1}):`, issues.join(" | "));
-        messages.push({ role: "assistant", content: JSON.stringify(parsed).slice(0, 12000) });
-        messages.push({ role: "user", content: buildRepairPrompt(issues) });
+        console.warn(`Depth check found ${issues.length} issue(s); serving the complete first-pass result.`);
       }
 
       // Only cache content that passed every depth check — thin content is never stored.
@@ -540,7 +542,7 @@ Deno.serve(async (req: Request) => {
           content: notes,
         });
       } else {
-        console.warn("Serving unverified notes after 3 attempts:", issues.slice(0, 5).join(" | "));
+        console.warn("Serving first-pass notes with quality warnings:", issues.slice(0, 5).join(" | "));
       }
 
       return { notes: gateNotes(notes, unlocked), cached: false, locked: !unlocked };
