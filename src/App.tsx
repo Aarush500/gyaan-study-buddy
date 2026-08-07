@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { AnimatePresence } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -62,22 +61,19 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 function AnimatedRoutes() {
-  const location = useLocation();
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition><Index /></PageTransition>} />
-        <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-        <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
-        <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
-        <Route path="/subject/:subjectId" element={<ProtectedRoute><PageTransition><Subject /></PageTransition></ProtectedRoute>} />
-        <Route path="/subject/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Chapter /></PageTransition></ProtectedRoute>} />
-        <Route path="/doubt/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><DoubtChat /></PageTransition></ProtectedRoute>} />
-        <Route path="/unlock/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Unlock /></PageTransition></ProtectedRoute>} />
-        <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
-        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-      </Routes>
-    </AnimatePresence>
+    <Routes>
+      <Route path="/" element={<PageTransition><Index /></PageTransition>} />
+      <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+      <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
+      <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+      <Route path="/subject/:subjectId" element={<ProtectedRoute><PageTransition><Subject /></PageTransition></ProtectedRoute>} />
+      <Route path="/subject/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Chapter /></PageTransition></ProtectedRoute>} />
+      <Route path="/doubt/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><DoubtChat /></PageTransition></ProtectedRoute>} />
+      <Route path="/unlock/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Unlock /></PageTransition></ProtectedRoute>} />
+      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+      <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+    </Routes>
   );
 }
 
