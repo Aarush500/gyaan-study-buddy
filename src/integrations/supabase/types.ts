@@ -101,6 +101,96 @@ export type Database = {
         }
         Relationships: []
       }
+      chapter_outlines: {
+        Row: {
+          cache_key: string
+          chapter_name: string
+          class_level: string
+          content: Json
+          created_at: string
+          id: string
+          language: string
+          study_style: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cache_key: string
+          chapter_name: string
+          class_level: string
+          content: Json
+          created_at?: string
+          id?: string
+          language?: string
+          study_style?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cache_key?: string
+          chapter_name?: string
+          class_level?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          language?: string
+          study_style?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chapter_pages: {
+        Row: {
+          cache_key: string
+          chapter_name: string
+          class_level: string
+          content: Json
+          created_at: string
+          id: string
+          language: string
+          study_style: string
+          subject: string
+          topic_index: number
+          topic_title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cache_key: string
+          chapter_name: string
+          class_level: string
+          content: Json
+          created_at?: string
+          id?: string
+          language?: string
+          study_style?: string
+          subject: string
+          topic_index: number
+          topic_title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cache_key?: string
+          chapter_name?: string
+          class_level?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          language?: string
+          study_style?: string
+          subject?: string
+          topic_index?: number
+          topic_title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_reports: {
         Row: {
           chapter_name: string
