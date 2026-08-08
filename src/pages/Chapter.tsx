@@ -2,36 +2,40 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, callEdgeFunction } from '@/lib/supabase';
-import { buildTopics, type Topic } from '@/lib/topics';
 import { isUnlockValid, daysUntil } from '@/lib/validity';
 import { pushNotification } from '@/lib/notifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ChapterSkeleton } from '@/components/skeletons/ChapterSkeleton';
+import { GeneratingNotes } from '@/components/learn/GeneratingNotes';
+import { TopicPageView } from '@/components/learn/TopicPage';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, ArrowRight, BookOpen, MessageCircleQuestion, Sparkles, TriangleAlert as AlertTriangle,
-  CircleCheck as CheckCircle, Lightbulb, Lock, Bookmark, Flag, Menu, List, Circle, RotateCcw, X,
+  ArrowLeft, ArrowRight, MessageCircleQuestion, TriangleAlert as AlertTriangle,
+  CircleCheck as CheckCircle, Lock, Bookmark, Flag, Menu, List, Circle, RotateCcw, X, Sparkles,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import type { ChapterNote } from '@/types';
-import { Model3D, pickModel } from '@/components/learn/Model3D';
+import type { ChapterOutline, ChapterPage } from '@/types';
 import { useT } from '@/lib/i18n';
+
+type TopicRef = { key: string; title: string; kind: 'overview' | 'topic'; index: number };
 
 export default function Chapter() {
   const { subjectId, chapterId } = useParams<{ subjectId: string; chapterId: string }>();
   const { profile, user } = useAuth();
   const { t } = useT();
   const navigate = useNavigate();
-  const [notes, setNotes] = useState<ChapterNote | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const [outline, setOutline] = useState<ChapterOutline | null>(null);
+  const [pages, setPages] = useState<Record<number, ChapterPage>>({});
+  const [loadingOutline, setLoadingOutline] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
   const [current, setCurrent] = useState(0);
   const [unlocked, setUnlocked] = useState(false);
   const [validUntil, setValidUntil] = useState<string | null>(null);
@@ -39,17 +43,27 @@ export default function Chapter() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
-  const [selectedMcq, setSelectedMcq] = useState<Record<number, string>>({});
   const [resumePoint, setResumePoint] = useState<{ index: number; scrollY: number } | null>(null);
   const restoredRef = useRef(false);
 
   const chapterName = decodeURIComponent(chapterId || '');
   const subjectName = subjectId || '';
-  const topics = buildTopics(notes);
-  const activeTopic: Topic | undefined = topics[current];
+  const classLevel = profile?.class_level || '9';
+  const language = profile?.preferred_language || 'English';
+  const studyStyle = profile?.study_style || 'detailed';
+
+  const topics: TopicRef[] = outline
+    ? [
+        { key: 'overview', title: 'Chapter Overview', kind: 'overview', index: -1 },
+        ...(outline.topics || []).map((tp, i) => ({
+          key: `topic-${i}`, title: tp.title, kind: 'topic' as const, index: i,
+        })),
+      ]
+    : [];
+  const activeTopic = topics[current];
   const saveKey = `gyaan:resume:${user?.id || 'guest'}:${subjectName}:${chapterName}`;
 
-  // ---- Autosave: remember the exact topic + scroll position, restore on return ----
+  // ---- Autosave / resume ----
   useEffect(() => {
     if (restoredRef.current || !topics.length) return;
     restoredRef.current = true;
@@ -90,25 +104,42 @@ export default function Chapter() {
     window.setTimeout(() => window.scrollTo({ top: y, behavior: 'smooth' }), 120);
   }
 
-  const fetchNotes = useCallback(async (forceRefresh = false) => {
-    setLoading(true);
+  // ---- Outline (fast, one small AI call) ----
+  const fetchOutline = useCallback(async (forceRefresh = false) => {
+    setLoadingOutline(true);
     setError(null);
-    const { data, error: err } = await callEdgeFunction<{ notes: ChapterNote; cached: boolean }>('generate-notes', {
-      subject: subjectName,
-      chapterName,
-      classLevel: profile?.class_level || '9',
-      language: profile?.preferred_language || 'English',
-      studyStyle: profile?.study_style || 'detailed',
-      forceRefresh,
+    const { data, error: err } = await callEdgeFunction<{ outline: ChapterOutline }>('generate-chapter-outline', {
+      subject: subjectName, chapterName, classLevel, language, studyStyle, forceRefresh,
     });
     if (err) setError(err);
-    else if (data?.notes) setNotes(data.notes);
-    setLoading(false);
-  }, [subjectName, chapterName, profile]);
+    else if (data?.outline) setOutline(data.outline);
+    setLoadingOutline(false);
+  }, [subjectName, chapterName, classLevel, language, studyStyle]);
 
   useEffect(() => {
-    if (subjectName && chapterName && profile) fetchNotes(false);
-  }, [subjectName, chapterName, profile?.class_level, profile?.preferred_language, profile?.study_style, fetchNotes]);
+    if (subjectName && chapterName && profile) fetchOutline(false);
+  }, [subjectName, chapterName, profile, fetchOutline]);
+
+  // ---- One topic page at a time ----
+  const fetchPage = useCallback(async (topicIndex: number, topicTitle: string, allTopics: string[]) => {
+    setLoadingPage(true);
+    setPageError(null);
+    const { data, error: err } = await callEdgeFunction<{ page: ChapterPage; locked?: boolean }>('generate-chapter-page', {
+      subject: subjectName, chapterName, classLevel, language, studyStyle,
+      topicIndex, topicTitle, allTopics,
+    });
+    if (err) setPageError(err);
+    else if (data?.page) setPages((p) => ({ ...p, [topicIndex]: data.page }));
+    setLoadingPage(false);
+  }, [subjectName, chapterName, classLevel, language, studyStyle]);
+
+  useEffect(() => {
+    if (!outline || !activeTopic || activeTopic.kind !== 'topic') return;
+    const i = activeTopic.index;
+    if (pages[i] || loadingPage) return;
+    if (i > 0 && !unlocked) return; // paywalled, don't even ask
+    fetchPage(i, activeTopic.title, (outline.topics || []).map((tp) => tp.title));
+  }, [outline, activeTopic, pages, loadingPage, unlocked, fetchPage]);
 
   const loadUserState = useCallback(async () => {
     if (!user) return;
@@ -116,7 +147,7 @@ export default function Chapter() {
       .from('unlocked_chapters')
       .select('valid_until')
       .eq('user_id', user.id).eq('subject', subjectName)
-      .eq('chapter_name', chapterName).eq('class_level', profile?.class_level || '9')
+      .eq('chapter_name', chapterName).eq('class_level', classLevel)
       .maybeSingle();
     if (unlock && isUnlockValid(unlock.valid_until)) {
       setUnlocked(true);
@@ -132,51 +163,48 @@ export default function Chapter() {
       .from('topic_progress').select('topic_key')
       .eq('user_id', user.id).eq('subject', subjectName).eq('chapter_name', chapterName);
     setCompleted(new Set((prog || []).map((p) => p.topic_key)));
-  }, [user, subjectName, chapterName, profile]);
+  }, [user, subjectName, chapterName, classLevel]);
 
   useEffect(() => { loadUserState(); }, [loadUserState]);
 
-  async function toggleBookmark(t: Topic) {
+  async function toggleBookmark(tp: TopicRef) {
     if (!user) return;
-    const has = bookmarks.has(t.key);
-    if (has) {
+    if (bookmarks.has(tp.key)) {
       await supabase.from('bookmarks').delete()
         .eq('user_id', user.id).eq('subject', subjectName)
-        .eq('chapter_name', chapterName).eq('topic_key', t.key);
-      const next = new Set(bookmarks); next.delete(t.key); setBookmarks(next);
+        .eq('chapter_name', chapterName).eq('topic_key', tp.key);
+      const next = new Set(bookmarks); next.delete(tp.key); setBookmarks(next);
     } else {
       await supabase.from('bookmarks').insert({
         user_id: user.id, subject: subjectName, chapter_name: chapterName,
-        topic_key: t.key, topic_title: t.title,
+        topic_key: tp.key, topic_title: tp.title,
       });
-      const next = new Set(bookmarks); next.add(t.key); setBookmarks(next);
+      const next = new Set(bookmarks); next.add(tp.key); setBookmarks(next);
       toast.success('Bookmarked');
     }
   }
 
-  async function toggleComplete(t: Topic) {
+  async function toggleComplete(tp: TopicRef) {
     if (!user) return;
-    const has = completed.has(t.key);
-    if (has) {
+    if (completed.has(tp.key)) {
       await supabase.from('topic_progress').delete()
         .eq('user_id', user.id).eq('subject', subjectName)
-        .eq('chapter_name', chapterName).eq('topic_key', t.key);
-      const next = new Set(completed); next.delete(t.key); setCompleted(next);
+        .eq('chapter_name', chapterName).eq('topic_key', tp.key);
+      const next = new Set(completed); next.delete(tp.key); setCompleted(next);
     } else {
       await supabase.from('topic_progress').insert({
         user_id: user.id, subject: subjectName, chapter_name: chapterName,
-        topic_key: t.key, topic_title: t.title,
+        topic_key: tp.key, topic_title: tp.title,
       });
-      const next = new Set(completed); next.add(t.key); setCompleted(next);
+      const next = new Set(completed); next.add(tp.key); setCompleted(next);
       toast.success('Marked complete ✅');
-      const doneCount = next.size;
-      const allDone = topics.length > 0 && doneCount >= topics.length;
+      const allDone = topics.length > 0 && next.size >= topics.length;
       await pushNotification(user.id, {
         type: 'topic',
-        title: allDone ? `Chapter complete: ${chapterName} 🎉` : `Topic done: ${t.title}`,
+        title: allDone ? `Chapter complete: ${chapterName} 🎉` : `Topic done: ${tp.title}`,
         body: allDone
           ? 'You finished every topic in this chapter. Revise before exams!'
-          : `${doneCount}/${topics.length} topics done in ${chapterName}.`,
+          : `${next.size}/${topics.length} topics done in ${chapterName}.`,
         link: `/subject/${subjectName}/${chapterId}`,
       });
     }
@@ -194,19 +222,14 @@ export default function Chapter() {
     toast.success('Thanks! Report sent 🙏');
   }
 
-  const isLocked = (i: number) => i > 0 && !unlocked;
+  const isLocked = (i: number) => i > 1 && !unlocked; // overview + first topic are free
   const progressPct = topics.length ? Math.round((completed.size / topics.length) * 100) : 0;
-  // Next topic stays locked until the current one is fully finished
   const topicDone = activeTopic ? completed.has(activeTopic.key) : false;
 
   function goTo(i: number) { setCurrent(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen app-bg">
-        <ChapterSkeleton />
-      </div>
-    );
+  if (loadingOutline) {
+    return <div className="min-h-screen app-bg"><ChapterSkeleton /></div>;
   }
 
   if (error) {
@@ -217,7 +240,7 @@ export default function Chapter() {
             <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">{t('failedToLoad')}</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button className="glass-btn text-primary-foreground" onClick={() => window.location.reload()}>{t('tryAgain')}</Button>
+            <Button className="glass-btn text-primary-foreground" onClick={() => fetchOutline(false)}>{t('tryAgain')}</Button>
           </CardContent>
         </Card>
       </div>
@@ -228,26 +251,44 @@ export default function Chapter() {
 
   const Sidebar = (
     <nav className="space-y-1">
-      {topics.map((t, i) => {
+      {topics.map((tp, i) => {
         const locked = isLocked(i);
         const isActive = i === current;
         return (
           <button
-            key={t.key}
+            key={tp.key}
             onClick={() => goTo(i)}
             className={`w-full text-left flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition
               ${isActive ? 'glass-strong font-semibold text-foreground' : 'hover:bg-card/60 text-muted-foreground'}`}
           >
-            {completed.has(t.key)
+            {completed.has(tp.key)
               ? <CheckCircle className="w-4 h-4 shrink-0 text-strong" />
               : <span className="text-xs w-5 shrink-0 opacity-60 text-center">{i + 1}</span>}
-            <span className="flex-1 break-words">{t.title}</span>
-            {bookmarks.has(t.key) && <Bookmark className="w-3.5 h-3.5 fill-weak text-weak shrink-0" />}
+            <span className="flex-1 break-words">{tp.title}</span>
+            {bookmarks.has(tp.key) && <Bookmark className="w-3.5 h-3.5 fill-weak text-weak shrink-0" />}
             {locked && <Lock className="w-3.5 h-3.5 shrink-0 opacity-60" />}
           </button>
         );
       })}
     </nav>
+  );
+
+  const UnlockCta = (
+    <div className="rounded-2xl border-2 border-primary bg-primary-soft p-6 text-center">
+      <div className="mx-auto w-12 h-12 rounded-full bg-primary grid place-items-center mb-3">
+        <Lock className="w-5 h-5 text-primary-foreground" />
+      </div>
+      <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
+      <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
+      <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
+      <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid for a full year</div>
+      <Button
+        className="w-full max-w-xs mx-auto mt-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
+        onClick={() => navigate(`/unlock/${subjectId}/${chapterId}`)}
+      >
+        {t('unlockFor')} <ArrowRight className="w-4 h-4 ml-2" />
+      </Button>
+    </div>
   );
 
   return (
@@ -278,7 +319,7 @@ export default function Chapter() {
               </SheetTrigger>
               <SheetContent side="left" className="app-bg w-80 overflow-y-auto">
                 <div className="mt-6 mb-1 font-display font-bold flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
-                <div className="mb-3 text-sm font-semibold leading-snug break-words">{notes?.title || chapterName}</div>
+                <div className="mb-3 text-sm font-semibold leading-snug break-words">{outline?.title || chapterName}</div>
                 {Sidebar}
               </SheetContent>
             </Sheet>
@@ -295,7 +336,7 @@ export default function Chapter() {
         <aside className="hidden lg:block">
           <div className="glass rounded-2xl p-3 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="px-2 pb-1 font-display font-bold text-sm flex items-center gap-2"><List className="w-4 h-4" /> {t('topics')}</div>
-            <div className="px-2 pb-2 text-sm font-semibold leading-snug break-words">{notes?.title || chapterName}</div>
+            <div className="px-2 pb-2 text-sm font-semibold leading-snug break-words">{outline?.title || chapterName}</div>
             <div className="px-2 pb-3">
               <Progress value={progressPct} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">{completed.size}/{topics.length} done • {progressPct}%</p>
@@ -306,9 +347,9 @@ export default function Chapter() {
 
         <main>
           <div className="mb-5">
-            <Badge className="mb-3">{subjectId} • Class {profile?.class_level || '9'}</Badge>
-            <h1 className="text-2xl md:text-3xl font-bold">{notes?.title || chapterName}</h1>
-            <p className="text-muted-foreground text-sm mt-1">{notes?.twoLineSummary}</p>
+            <Badge className="mb-3">{subjectId} • Class {classLevel}</Badge>
+            <h1 className="text-2xl md:text-3xl font-bold">{outline?.title || chapterName}</h1>
+            <p className="text-muted-foreground text-sm mt-1">{outline?.twoLineSummary}</p>
           </div>
 
           {activeTopic && (
@@ -328,9 +369,10 @@ export default function Chapter() {
                   </button>
                 </div>
               )}
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-display text-xl font-extrabold">{activeTopic.title}</h2>
-                <div className="flex items-center gap-1">
+
+              <div className="flex items-center justify-between mb-3 gap-3">
+                <h2 className="font-display text-xl font-extrabold break-words">{activeTopic.title}</h2>
+                <div className="flex items-center gap-1 shrink-0">
                   <Button variant="ghost" size="icon" className="glass rounded-full"
                     onClick={() => toggleComplete(activeTopic)} title="Mark complete">
                     {completed.has(activeTopic.key)
@@ -344,28 +386,53 @@ export default function Chapter() {
                 </div>
               </div>
 
-              {isLocked(current) ? (
-                <div className="space-y-5">
-                  {/* Locked topics still show the key points so students see real value first */}
-                  {notes && <LockedPreview notes={notes} />}
-                  <div className="rounded-2xl border-2 border-primary bg-primary-soft p-6 text-center">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-primary grid place-items-center mb-3">
-                      <Lock className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <div className="font-display text-xl font-extrabold">{t('unlockChapter')}</div>
-                    <div className="text-sm text-muted-foreground mt-1">{t('firstTopicFree')}</div>
-                    <div className="mt-3 font-display text-3xl font-extrabold">₹39</div>
-                    <div className="text-xs text-muted-foreground">Less than a samosa plate 🥟 • Valid for a full year</div>
-                    <Button
-                      className="w-full max-w-xs mx-auto mt-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground text-base font-semibold"
-                      onClick={() => navigate(`/unlock/${subjectId}/${chapterId}`)}
-                    >
-                      {t('unlockFor')} <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+              {activeTopic.kind === 'overview' && outline && (
+                <OverviewPage outline={outline} />
+              )}
+
+              {activeTopic.kind === 'topic' && (
+                isLocked(current) ? (
+                  <div className="space-y-5">
+                    <Card className="glass">
+                      <CardHeader><CardTitle className="text-lg">Key Points (free preview)</CardTitle></CardHeader>
+                      <CardContent>
+                        <ul className="space-y-3">
+                          {(outline?.keyPoints || []).map((kp, i) => (
+                            <li key={i} className="flex gap-3">
+                              <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" />
+                              <div>
+                                <span className="font-medium">{kp.point}</span>
+                                <p className="text-sm text-muted-foreground mt-1">{kp.explanation}</p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="text-sm text-muted-foreground mt-5">
+                          That's the summary. The full topic — deep explanations, notes between paragraphs,
+                          numericals, diagrams, 3D visuals and the questions that definitely come in the exam — is right below.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    {UnlockCta}
                   </div>
-                </div>
-              ) : (
-                notes && <TopicBody notes={notes} topic={activeTopic} selectedMcq={selectedMcq} setSelectedMcq={setSelectedMcq} />
+                ) : loadingPage && !pages[activeTopic.index] ? (
+                  <GeneratingNotes />
+                ) : pageError && !pages[activeTopic.index] ? (
+                  <Card className="glass">
+                    <CardContent className="pt-6 text-center">
+                      <AlertTriangle className="w-10 h-10 text-destructive mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground mb-4">{pageError}</p>
+                      <Button
+                        className="glass-btn text-primary-foreground"
+                        onClick={() => fetchPage(activeTopic.index, activeTopic.title, (outline?.topics || []).map((tp) => tp.title))}
+                      >
+                        {t('tryAgain')}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : pages[activeTopic.index] ? (
+                  <TopicPageView page={pages[activeTopic.index]} subject={subjectName} />
+                ) : null
               )}
 
               <div className="mt-8 pt-4 border-t border-border/40">
@@ -388,8 +455,6 @@ export default function Chapter() {
                     </Button>
                   )}
                 </div>
-                {/* The next topic unlocks only after this whole topic — notes, visuals
-                    and the 3D model — is finished and marked complete. */}
                 {!topicDone && current < topics.length - 1 && (
                   <button
                     onClick={() => toggleComplete(activeTopic)}
@@ -406,7 +471,6 @@ export default function Chapter() {
         </main>
       </div>
 
-      {/* Floating doubt button */}
       <Link to={`/doubt/${subjectId}/${chapterId}`} className="fixed bottom-6 right-6 z-50">
         <Button className="glass-btn text-primary-foreground rounded-full h-14 w-14 shadow-xl" title="Ask a doubt">
           <MessageCircleQuestion className="w-6 h-6" />
@@ -430,198 +494,66 @@ export default function Chapter() {
   );
 }
 
-function LockedPreview({ notes }: { notes: ChapterNote }) {
+function OverviewPage({ outline }: { outline: ChapterOutline }) {
   return (
-    <Card className="glass">
-      <CardHeader><CardTitle className="text-lg">Key Points (free preview)</CardTitle></CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {(notes.keyPoints || []).map((kp, i) => (
-            <li key={i} className="flex gap-3">
-              <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" />
-              <div>
-                <span className="font-medium">{kp.point}</span>
-                <p className="text-sm text-muted-foreground mt-1">{kp.explanation}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <p className="text-sm text-muted-foreground mt-5">
-          That's the summary. The full topic — deep explanations, notes between paragraphs, numericals,
-          diagrams, 3D visuals and the questions that definitely come in the exam — is right below.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TopicBody({ notes, topic, selectedMcq, setSelectedMcq }: {
-  notes: ChapterNote; topic: Topic;
-  selectedMcq: Record<number, string>;
-  setSelectedMcq: React.Dispatch<React.SetStateAction<Record<number, string>>>;
-}) {
-  if (topic.kind === 'overview') {
-    return (
-      <div className="space-y-5">
-        <Card className="glass">
+    <div className="space-y-5">
+      {outline.hook && (
+        <Card className="glass border-l-4 border-l-primary">
           <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Sparkles className="w-6 h-6 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-semibold mb-1">2-Line Summary</h3>
-                <p className="text-muted-foreground">{notes.twoLineSummary}</p>
-              </div>
-            </div>
+            <p className="whitespace-pre-wrap leading-relaxed">{outline.hook}</p>
           </CardContent>
         </Card>
-        <Card className="glass">
-          <CardHeader><CardTitle className="text-lg">Key Points</CardTitle></CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {notes.keyPoints?.map((kp, i) => (
-                <li key={i} className="flex gap-3">
-                  <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" />
-                  <div><span className="font-medium">{kp.point}</span>
-                    <p className="text-sm text-muted-foreground mt-1">{kp.explanation}</p></div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+      )}
 
-  if (topic.kind === 'section') {
-    const s = notes.detailedNotes[topic.index];
-    const model = pickModel(notes.title, notes.subject, s.heading, s.diagramDescription);
-    return (
       <Card className="glass">
-        <CardContent className="pt-6 prose prose-slate max-w-none">
-          <p className="whitespace-pre-wrap leading-relaxed">{s.content}</p>
-          {model && <Model3D kind={model} />}
-          {s.diagramDescription && (
-            <div className="glass rounded-xl p-4 mt-4 not-prose">
-              <p className="text-sm font-medium flex items-center gap-2"><BookOpen className="w-4 h-4 text-primary" /> Diagram</p>
-              <p className="text-sm text-muted-foreground mt-1">{s.diagramDescription}</p>
-            </div>
-          )}
-          {s.memoryTrick && (
-            <div className="rounded-xl p-4 mt-4 border border-weak-soft bg-weak-soft not-prose">
-              <p className="text-sm font-medium text-weak-soft-foreground flex items-center gap-2"><Lightbulb className="w-4 h-4" /> Memory Trick</p>
-              <p className="text-sm text-weak-soft-foreground mt-1">{s.memoryTrick}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (topic.kind === 'exam') {
-    const e = notes.examBox;
-    return (
-      <Card className="glass">
-        <CardHeader><CardTitle className="text-lg">{e.title}</CardTitle></CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-3 gap-5">
-            {([['1 Mark', e.likely1Mark], ['3 Marks', e.likely3Mark], ['5 Marks', e.likely5Mark]] as const).map(([label, arr]) => (
-              <div key={label}>
-                <h4 className="font-semibold mb-2 text-primary">{label}</h4>
-                <ul className="text-sm space-y-1">{arr?.map((q, i) => <li key={i} className="flex gap-2"><span className="text-primary">•</span>{q}</li>)}</ul>
-              </div>
-            ))}
-          </div>
-          {e.previousYearQuestions?.length > 0 && (
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-6 h-6 text-primary mt-0.5 shrink-0" />
             <div>
-              <h4 className="font-semibold mb-3">Previous Year Questions</h4>
-              <div className="space-y-2">
-                {e.previousYearQuestions.map((p, i) => (
-                  <div key={i} className="glass rounded-xl p-3">
-                    <Badge variant="outline" className="mb-2">{p.year} • {p.marks} marks</Badge>
-                    <p className="text-sm">{p.question}</p>
-                  </div>
-                ))}
-              </div>
+              <h3 className="font-semibold mb-1">What this chapter is about</h3>
+              <p className="text-muted-foreground">{outline.twoLineSummary}</p>
+              {!!outline.estimatedMinutes && (
+                <p className="text-xs text-muted-foreground mt-2">~{outline.estimatedMinutes} min read • {outline.topics?.length || 0} topics</p>
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
-    );
-  }
 
-  if (topic.kind === 'mcq') {
-    return (
       <Card className="glass">
-        <CardHeader><CardTitle className="text-lg">Test Yourself</CardTitle></CardHeader>
-        <CardContent className="space-y-6">
-          {notes.mcqs.map((mcq, qi) => {
-            const chosen = selectedMcq[qi];
-            return (
-              <div key={qi} className="glass rounded-xl p-4">
-                <p className="font-medium mb-3">{qi + 1}. {mcq.question}</p>
-                <div className="grid sm:grid-cols-2 gap-2">
-                  {mcq.options.map((opt, oi) => {
-                    const letter = String.fromCharCode(65 + oi);
-                    const answered = chosen !== undefined;
-                    const isCorrect = letter === mcq.correct;
-                    const variant = answered ? (isCorrect ? 'default' : (chosen === letter ? 'destructive' : 'outline')) : 'outline';
-                    return (
-                      <Button key={oi} variant={variant as never}
-                        className={`justify-start text-left h-auto py-3 px-4 ${answered && isCorrect ? 'bg-strong hover:bg-strong text-strong-foreground' : ''}`}
-                        disabled={answered}
-                        onClick={() => setSelectedMcq((p) => ({ ...p, [qi]: letter }))}>
-                        {opt}
-                      </Button>
-                    );
-                  })}
-                </div>
-                {chosen !== undefined && (
-                  <div className="mt-3 p-3 rounded-lg glass text-sm">{mcq.explanation}</div>
-                )}
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (topic.kind === 'mistakes') {
-    return (
-      <Card className="glass">
-        <CardHeader><CardTitle className="text-lg flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-weak" /> Common Mistakes</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Key Points</CardTitle></CardHeader>
         <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            {notes.commonMistakes.map((cm, i) => (
-              <AccordionItem key={i} value={`m-${i}`}>
-                <AccordionTrigger className="text-left"><span className="text-destructive font-medium">{cm.mistake}</span></AccordionTrigger>
-                <AccordionContent>
-                  <div className="rounded-lg p-4 bg-strong-soft">
-                    <p className="font-medium text-strong">Correct approach</p>
-                    <p className="text-sm mt-1">{cm.correct}</p>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+          <ul className="space-y-3">
+            {(outline.keyPoints || []).map((kp, i) => (
+              <li key={i} className="flex gap-3">
+                <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-medium">{kp.point}</span>
+                  <p className="text-sm text-muted-foreground mt-1">{kp.explanation}</p>
+                </div>
+              </li>
             ))}
-          </Accordion>
+          </ul>
         </CardContent>
       </Card>
-    );
-  }
 
-  // revision
-  return (
-    <Card className="glass">
-      <CardHeader><CardTitle className="text-lg">Quick Revision</CardTitle></CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {notes.quickRevision.map((p, i) => (
-            <li key={i} className="flex gap-3 items-start glass rounded-lg p-3">
-              <CheckCircle className="w-5 h-5 text-strong mt-0.5 shrink-0" /><span>{p}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
+      {outline.examBox && (
+        <Card className="glass border-l-4 border-l-weak">
+          <CardHeader><CardTitle className="text-lg">{outline.examBox.title || 'What will come in the exam?'}</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-5">
+              {([['1 Mark', outline.examBox.likely1Mark], ['3 Marks', outline.examBox.likely3Mark], ['5 Marks', outline.examBox.likely5Mark]] as const).map(([label, arr]) => (
+                <div key={label}>
+                  <h4 className="font-semibold mb-2 text-primary">{label}</h4>
+                  <ul className="text-sm space-y-1">
+                    {(arr || []).map((q, i) => <li key={i} className="flex gap-2"><span className="text-primary">•</span>{q}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
