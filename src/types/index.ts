@@ -82,3 +82,43 @@ export const STUDY_STYLES = [
   { id: 'concise', name: 'Quick Revision', description: 'Bullet points, key facts only' },
   { id: 'exam', name: 'Exam Focused', description: 'PYQs, important questions' },
 ] as const;
+
+// ---- Page-at-a-time chapter engine ----
+export interface ChapterOutlineTopic {
+  title: string;
+  blurb: string;
+  level: string;
+}
+
+export interface ChapterOutline {
+  title: string;
+  hook: string;
+  twoLineSummary: string;
+  estimatedMinutes: number;
+  keyPoints: Array<{ point: string; explanation: string }>;
+  examBox: {
+    title: string;
+    likely1Mark: string[];
+    likely3Mark: string[];
+    likely5Mark: string[];
+  };
+  topics: ChapterOutlineTopic[];
+}
+
+export interface ChapterPage {
+  title: string;
+  level: string;
+  hook: string;
+  simpleDefinition: string;
+  examDefinition: string;
+  bodyMarkdown: string;
+  indianComparison: string;
+  keyTerms: Array<{ term: string; meaning: string }>;
+  workedProblems: Array<{ question: string; solution: string; marks: number }>;
+  examFocus: string;
+  commonMistake: string;
+  memoryTrick: string;
+  quickCheck: { question: string; answer: string };
+  diagram: { name: string; shows: string; svg: string; howToDraw: string };
+  closingLine: string;
+}
