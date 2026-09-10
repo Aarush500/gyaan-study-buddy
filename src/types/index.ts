@@ -5,6 +5,8 @@ export interface Profile {
   preferred_language: string;
   study_style: string;
   weak_subjects: string[];
+  strong_subjects?: string[];
+  onboarded?: boolean;
   streak_days: number;
   last_active_date: string;
   created_at: string;

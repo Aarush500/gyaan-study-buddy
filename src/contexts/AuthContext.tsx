@@ -39,6 +39,8 @@ function normalizeProfile(profile: Profile | null): Profile | null {
     preferred_language: safeLanguage(profile.preferred_language),
     study_style: profile.study_style || DEFAULT_STUDY_STYLE,
     weak_subjects: profile.weak_subjects || [],
+    strong_subjects: profile.strong_subjects || [],
+    onboarded: profile.onboarded ?? false,
     streak_days: profile.streak_days || 0,
   };
 }
@@ -116,6 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         preferred_language: DEFAULT_LANGUAGE,
         study_style: DEFAULT_STUDY_STYLE,
         weak_subjects: [],
+        strong_subjects: [],
+        onboarded: true,
         streak_days: 0,
         last_active_date: new Date().toISOString().slice(0, 10),
         created_at: new Date().toISOString(),

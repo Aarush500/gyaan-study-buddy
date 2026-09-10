@@ -14,6 +14,11 @@ import Subject from "./pages/Subject.tsx";
 import Chapter from "./pages/Chapter.tsx";
 import DoubtChat from "./pages/DoubtChat.tsx";
 import Unlock from "./pages/Unlock.tsx";
+import LevelStep from "./pages/onboarding/LevelStep.tsx";
+import SubjectsStep from "./pages/onboarding/SubjectsStep.tsx";
+import LanguageStep from "./pages/onboarding/LanguageStep.tsx";
+import StyleStep from "./pages/onboarding/StyleStep.tsx";
+import SummaryStep from "./pages/onboarding/SummaryStep.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -53,10 +58,13 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
   }
 }
 
-function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+function ProtectedRoute({ children, requireOnboarded = true }: { children: ReactNode; requireOnboarded?: boolean }) {
+  const { user, profile, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (requireOnboarded && profile && profile.onboarded === false) {
+    return <Navigate to="/onboarding/level" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -66,6 +74,11 @@ function AnimatedRoutes() {
       <Route path="/" element={<PageTransition><Index /></PageTransition>} />
       <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
       <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
+      <Route path="/onboarding/level" element={<ProtectedRoute requireOnboarded={false}><PageTransition><LevelStep /></PageTransition></ProtectedRoute>} />
+      <Route path="/onboarding/subjects" element={<ProtectedRoute requireOnboarded={false}><PageTransition><SubjectsStep /></PageTransition></ProtectedRoute>} />
+      <Route path="/onboarding/language" element={<ProtectedRoute requireOnboarded={false}><PageTransition><LanguageStep /></PageTransition></ProtectedRoute>} />
+      <Route path="/onboarding/style" element={<ProtectedRoute requireOnboarded={false}><PageTransition><StyleStep /></PageTransition></ProtectedRoute>} />
+      <Route path="/onboarding/summary" element={<ProtectedRoute requireOnboarded={false}><PageTransition><SummaryStep /></PageTransition></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
       <Route path="/subject/:subjectId" element={<ProtectedRoute><PageTransition><Subject /></PageTransition></ProtectedRoute>} />
       <Route path="/subject/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Chapter /></PageTransition></ProtectedRoute>} />
