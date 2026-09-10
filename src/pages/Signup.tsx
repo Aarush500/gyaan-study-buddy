@@ -4,18 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { CLASSES, LANGUAGES } from '@/types';
 import { AuthShell, GoogleButton } from '@/components/auth/AuthShell';
 
 export default function Signup() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [classLevel, setClassLevel] = useState('9');
-  const [preferredLanguage, setPreferredLanguage] = useState('English');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signUp, signInWithGoogle } = useAuth();
@@ -25,13 +21,13 @@ export default function Signup() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await signUp(email, password, fullName, classLevel, preferredLanguage);
+    const { error } = await signUp(email, password, fullName, '', '');
     setLoading(false);
     if (error) {
       toast({ title: 'Signup failed', description: error, variant: 'destructive' });
     } else {
-      toast({ title: 'Account created!', description: 'Please check your email to verify.' });
-      navigate('/dashboard');
+      toast({ title: 'Account created!', description: "Let's set up your study plan." });
+      navigate('/onboarding/level');
     }
   }
 
@@ -42,7 +38,7 @@ export default function Signup() {
       setGoogleLoading(false);
       toast({ title: 'Google sign-in failed', description: error, variant: 'destructive' });
     } else if (!redirected) {
-      navigate('/dashboard');
+      navigate('/onboarding/level');
     }
   }
 
@@ -56,7 +52,9 @@ export default function Signup() {
           <span className="font-display font-extrabold text-xl">Gyaan</span>
         </div>
         <h1 className="font-display text-2xl font-extrabold">Create your account</h1>
-        <p className="text-muted-foreground text-sm mt-1 mb-6">Start your CBSE prep journey today.</p>
+        <p className="text-muted-foreground text-sm mt-1 mb-6">
+          Takes 30 seconds — we'll ask about your class and subjects next.
+        </p>
 
         <GoogleButton onClick={handleGoogle} loading={googleLoading} />
 
@@ -78,24 +76,6 @@ export default function Signup() {
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" placeholder="Create a strong password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="class">Class</Label>
-            <Select value={classLevel} onValueChange={setClassLevel}>
-              <SelectTrigger><SelectValue placeholder="Select your class" /></SelectTrigger>
-              <SelectContent>
-                {CLASSES.map(c => <SelectItem key={c} value={c}>Class {c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="language">Study language</Label>
-            <Select value={preferredLanguage} onValueChange={setPreferredLanguage}>
-              <SelectTrigger><SelectValue placeholder="Select your language" /></SelectTrigger>
-              <SelectContent>
-                {LANGUAGES.map(language => <SelectItem key={language} value={language}>{language}</SelectItem>)}
-              </SelectContent>
-            </Select>
           </div>
           <Button type="submit" className="w-full glass-btn text-primary-foreground h-11" disabled={loading}>
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
