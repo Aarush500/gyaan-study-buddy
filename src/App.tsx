@@ -14,6 +14,11 @@ import Subject from "./pages/Subject.tsx";
 import Chapter from "./pages/Chapter.tsx";
 import DoubtChat from "./pages/DoubtChat.tsx";
 import Unlock from "./pages/Unlock.tsx";
+import LevelStep from "./pages/onboarding/LevelStep.tsx";
+import SubjectsStep from "./pages/onboarding/SubjectsStep.tsx";
+import LanguageStep from "./pages/onboarding/LanguageStep.tsx";
+import StyleStep from "./pages/onboarding/StyleStep.tsx";
+import SummaryStep from "./pages/onboarding/SummaryStep.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
