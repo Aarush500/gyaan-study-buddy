@@ -351,8 +351,10 @@ export type Database = {
           full_name: string | null
           id: string
           last_active_date: string | null
+          onboarded: boolean
           preferred_language: string | null
           streak_days: number | null
+          strong_subjects: string[]
           study_style: string | null
           updated_at: string | null
           weak_subjects: string[] | null
@@ -363,8 +365,10 @@ export type Database = {
           full_name?: string | null
           id: string
           last_active_date?: string | null
+          onboarded?: boolean
           preferred_language?: string | null
           streak_days?: number | null
+          strong_subjects?: string[]
           study_style?: string | null
           updated_at?: string | null
           weak_subjects?: string[] | null
@@ -375,8 +379,10 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_active_date?: string | null
+          onboarded?: boolean
           preferred_language?: string | null
           streak_days?: number | null
+          strong_subjects?: string[]
           study_style?: string | null
           updated_at?: string | null
           weak_subjects?: string[] | null
