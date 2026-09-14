@@ -44,6 +44,7 @@ export default function Chapter() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [resumePoint, setResumePoint] = useState<{ index: number; scrollY: number } | null>(null);
+  const [dir, setDir] = useState(1);
   const restoredRef = useRef(false);
 
   const chapterName = decodeURIComponent(chapterId || '');
