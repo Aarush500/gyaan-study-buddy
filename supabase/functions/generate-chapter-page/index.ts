@@ -184,7 +184,7 @@ Deno.serve(async (req) => {
       return json({ locked: true, error: "This topic is locked. Unlock the chapter to continue." }, 403);
     }
 
-    const cacheKey = `v3::${classLevel}::${subject}::${chapterName}::${topicIndex}::${topicTitle}::${language}::${studyStyle}`.toLowerCase();
+    const cacheKey = `v4::${classLevel}::${subject}::${chapterName}::${topicIndex}::${topicTitle}::${language}::${studyStyle}`.toLowerCase();
 
     if (!forceRefresh) {
       const { data: cached } = await supabase
