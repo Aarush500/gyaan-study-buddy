@@ -201,7 +201,7 @@ Deno.serve(async (req) => {
       }],
       tools: [PAGE_TOOL],
       tool_choice: { type: "function", function: { name: "emit_page" } },
-      max_tokens: 12000,
+      max_tokens: 24000,
     }, 110_000);
 
     await supabase.from("chapter_pages").upsert({
