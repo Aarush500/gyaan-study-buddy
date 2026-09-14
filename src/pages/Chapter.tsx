@@ -396,6 +396,14 @@ export default function Chapter() {
                 </div>
               </div>
 
+              <AnimatePresence mode="wait" initial={false} custom={dir}>
+              <motion.div
+                key={activeTopic.key}
+                initial={{ opacity: 0, x: dir * 28 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: dir * -28 }}
+                transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              >
               {activeTopic.kind === 'overview' && outline && (
                 <OverviewPage outline={outline} />
               )}
