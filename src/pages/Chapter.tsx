@@ -514,7 +514,7 @@ export default function Chapter() {
       </div>
 
 
-      <Link to={`/doubt/${subjectId}/${chapterId}`} className="fixed bottom-6 right-6 z-50">
+      <Link to={`/doubt/${subjectId}/${chapterId}`} className="fixed bottom-24 md:bottom-6 right-6 z-50">
         <Button className="glass-btn text-primary-foreground rounded-full h-14 w-14 shadow-xl" title="Ask a doubt">
           <MessageCircleQuestion className="w-6 h-6" />
         </Button>
