@@ -478,10 +478,41 @@ export default function Chapter() {
                   )}
                 </div>
               </div>
+              </motion.div>
+              </AnimatePresence>
+
+              {/* Mobile sticky nav bar */}
+              <div className="md:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-border/50 px-3 py-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="glass shrink-0 rounded-xl h-11 w-11"
+                    disabled={current === 0} onClick={() => goTo(current - 1)}>
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                  <span className="text-[11px] text-muted-foreground shrink-0">{current + 1}/{topics.length}</span>
+                  {current < topics.length - 1 ? (
+                    <Button
+                      className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-transform active:scale-95"
+                      disabled={isLocked(current)}
+                      onClick={nextTopic}
+                    >
+                      {topicDone ? t('nextTopic') : 'Mark done & continue'} <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                      disabled={topicDone || isLocked(current)}
+                      onClick={() => toggleComplete(activeTopic)}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" /> {topicDone ? t('chapterDone') : 'Finish chapter'}
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </main>
       </div>
+
 
       <Link to={`/doubt/${subjectId}/${chapterId}`} className="fixed bottom-6 right-6 z-50">
         <Button className="glass-btn text-primary-foreground rounded-full h-14 w-14 shadow-xl" title="Ask a doubt">
