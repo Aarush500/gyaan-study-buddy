@@ -119,10 +119,10 @@ ${TONE_RULES}
 - hook: 3-5 lines, a real Indian scenario or surprising fact. Never a definition.
 - simpleDefinition: 2-3 lines a 13-year-old understands. examDefinition: the precise NCERT-style definition to write in the exam.
 - indianComparison: 5-8 lines of an accurate everyday-Indian-life comparison that makes the concept click.
-- keyTerms: 4-8 terms with student-friendly meanings.
+- keyTerms: 8-12 terms with student-friendly meanings.
 - workedProblems: ${needsNumericals(o.subject)
-    ? "2-3 of the MOST important exam problems for this topic (numericals where applicable), each solved step by step showing every step and the final answer with units."
-    : "2-3 of the most important exam questions for this topic, each with a full model answer written the way an examiner wants it."}
+    ? "4-6 of the MOST important exam problems for this topic (numericals where applicable), mixed 1/3/5-mark, each solved step by step showing every step and the final answer with units."
+    : "4-6 of the most important exam questions for this topic, mixed 1/3/5-mark, each with a full model answer written the way an examiner wants it."}
 - examFocus: 5-8 lines — what is asked from THIS topic, typical marks, keywords examiners hunt for, what a perfect 3-mark and 5-mark answer looks like.
 - commonMistake: the mistake students actually make here, and the correct version.
 - memoryTrick: one mnemonic or trick that genuinely helps.
