@@ -226,7 +226,16 @@ export default function Chapter() {
   const progressPct = topics.length ? Math.round((completed.size / topics.length) * 100) : 0;
   const topicDone = activeTopic ? completed.has(activeTopic.key) : false;
 
-  function goTo(i: number) { setCurrent(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function goTo(i: number) {
+    setDir(i > current ? 1 : -1);
+    setCurrent(i);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function nextTopic() {
+    if (activeTopic && !topicDone && !isLocked(current)) await toggleComplete(activeTopic);
+    goTo(current + 1);
+  }
 
   if (loadingOutline) {
     return <div className="min-h-screen app-bg"><ChapterSkeleton /></div>;
