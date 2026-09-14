@@ -103,8 +103,9 @@ ${languageRule(o.language)}
 ${TONE_RULES}
 
 ================= LENGTH (HARD RULE) =================
-- "bodyMarkdown" must be 1000-1500 words of real flowing explanation for THIS topic alone. Under 900 words is a FAILED page.
-- Cover every sub-part of this topic: what it is, how it was discovered, why it works, how it is used, what breaks without it, its India connection, edge cases and comparisons.
+- "bodyMarkdown" must be 2200-3000 words of real flowing explanation for THIS topic alone. Under 2000 words is a FAILED page.
+- Use at least 8 "## " sub-headings, each with genuine teaching underneath — never a heading with two lines under it.
+- Cover every sub-part of this topic: what it is, how it was discovered, why it works, how it is used, what breaks without it, its India connection, edge cases, comparisons with neighbouring concepts, and how it links forward to later classes.
 
 ================= bodyMarkdown FORMAT =================
 - Real markdown: "## " sub-headings, short paragraphs (max 4 lines), tables where a comparison helps, "> " quote blocks for the big idea.
