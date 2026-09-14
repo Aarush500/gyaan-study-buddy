@@ -21,6 +21,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import type { ChapterOutline, ChapterPage } from '@/types';
 import { useT } from '@/lib/i18n';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type TopicRef = { key: string; title: string; kind: 'overview' | 'topic'; index: number };
 
