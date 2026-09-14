@@ -21,6 +21,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import type { ChapterOutline, ChapterPage } from '@/types';
 import { useT } from '@/lib/i18n';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type TopicRef = { key: string; title: string; kind: 'overview' | 'topic'; index: number };
 
@@ -44,6 +45,7 @@ export default function Chapter() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [resumePoint, setResumePoint] = useState<{ index: number; scrollY: number } | null>(null);
+  const [dir, setDir] = useState(1);
   const restoredRef = useRef(false);
 
   const chapterName = decodeURIComponent(chapterId || '');
@@ -226,7 +228,16 @@ export default function Chapter() {
   const progressPct = topics.length ? Math.round((completed.size / topics.length) * 100) : 0;
   const topicDone = activeTopic ? completed.has(activeTopic.key) : false;
 
-  function goTo(i: number) { setCurrent(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function goTo(i: number) {
+    setDir(i > current ? 1 : -1);
+    setCurrent(i);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function nextTopic() {
+    if (activeTopic && !topicDone && !isLocked(current)) await toggleComplete(activeTopic);
+    goTo(current + 1);
+  }
 
   if (loadingOutline) {
     return <div className="min-h-screen app-bg"><ChapterSkeleton /></div>;
@@ -386,6 +397,14 @@ export default function Chapter() {
                 </div>
               </div>
 
+              <AnimatePresence mode="wait" initial={false} custom={dir}>
+              <motion.div
+                key={activeTopic.key}
+                initial={{ opacity: 0, x: dir * 28 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: dir * -28 }}
+                transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              >
               {activeTopic.kind === 'overview' && outline && (
                 <OverviewPage outline={outline} />
               )}
@@ -435,43 +454,68 @@ export default function Chapter() {
                 ) : null
               )}
 
-              <div className="mt-8 pt-4 border-t border-border/40">
-                <div className="flex items-center justify-between">
+              <div className="mt-8 pt-4 border-t border-border/40 pb-24 md:pb-4">
+                <div className="hidden md:flex items-center justify-between">
                   <Button variant="outline" className="glass" disabled={current === 0} onClick={() => goTo(current - 1)}>
                     <ArrowLeft className="w-4 h-4 mr-2" /> {t('previous')}
                   </Button>
                   <span className="text-xs text-muted-foreground">{current + 1} / {topics.length}</span>
                   {current < topics.length - 1 ? (
                     <Button
-                      className="glass-btn text-primary-foreground"
-                      disabled={!topicDone}
-                      onClick={() => goTo(current + 1)}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 px-6 font-semibold rounded-xl transition-transform active:scale-95"
+                      disabled={isLocked(current)}
+                      onClick={nextTopic}
                     >
-                      {t('nextTopic')} <ArrowRight className="w-4 h-4 ml-2" />
+                      {topicDone ? t('nextTopic') : 'Mark done & continue'} <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   ) : (
-                    <Button className="glass-btn text-primary-foreground" disabled>
-                      <CheckCircle className="w-4 h-4 mr-2" /> {t('chapterDone')}
+                    <Button
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 px-6 font-semibold rounded-xl"
+                      disabled={topicDone || isLocked(current)}
+                      onClick={() => toggleComplete(activeTopic)}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" /> {topicDone ? t('chapterDone') : 'Finish chapter'}
                     </Button>
                   )}
                 </div>
-                {!topicDone && current < topics.length - 1 && (
-                  <button
-                    onClick={() => toggleComplete(activeTopic)}
-                    disabled={isLocked(current)}
-                    className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-primary disabled:opacity-50"
-                  >
-                    Finish this whole topic — read it, scroll through every visual and the 3D
-                    model, then tap here to mark it complete and unlock the next one.
-                  </button>
-                )}
+              </div>
+              </motion.div>
+              </AnimatePresence>
+
+              {/* Mobile sticky nav bar */}
+              <div className="md:hidden fixed bottom-0 inset-x-0 z-40 glass border-t border-border/50 px-3 py-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="glass shrink-0 rounded-xl h-11 w-11"
+                    disabled={current === 0} onClick={() => goTo(current - 1)}>
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                  <span className="text-[11px] text-muted-foreground shrink-0">{current + 1}/{topics.length}</span>
+                  {current < topics.length - 1 ? (
+                    <Button
+                      className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-transform active:scale-95"
+                      disabled={isLocked(current)}
+                      onClick={nextTopic}
+                    >
+                      {topicDone ? t('nextTopic') : 'Mark done & continue'} <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button
+                      className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                      disabled={topicDone || isLocked(current)}
+                      onClick={() => toggleComplete(activeTopic)}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" /> {topicDone ? t('chapterDone') : 'Finish chapter'}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
         </main>
       </div>
 
-      <Link to={`/doubt/${subjectId}/${chapterId}`} className="fixed bottom-6 right-6 z-50">
+
+      <Link to={`/doubt/${subjectId}/${chapterId}`} className="fixed bottom-24 md:bottom-6 right-6 z-50">
         <Button className="glass-btn text-primary-foreground rounded-full h-14 w-14 shadow-xl" title="Ask a doubt">
           <MessageCircleQuestion className="w-6 h-6" />
         </Button>

@@ -103,8 +103,9 @@ ${languageRule(o.language)}
 ${TONE_RULES}
 
 ================= LENGTH (HARD RULE) =================
-- "bodyMarkdown" must be 1000-1500 words of real flowing explanation for THIS topic alone. Under 900 words is a FAILED page.
-- Cover every sub-part of this topic: what it is, how it was discovered, why it works, how it is used, what breaks without it, its India connection, edge cases and comparisons.
+- "bodyMarkdown" must be 2200-3000 words of real flowing explanation for THIS topic alone. Under 2000 words is a FAILED page.
+- Use at least 8 "## " sub-headings, each with genuine teaching underneath — never a heading with two lines under it.
+- Cover every sub-part of this topic: what it is, how it was discovered, why it works, how it is used, what breaks without it, its India connection, edge cases, comparisons with neighbouring concepts, and how it links forward to later classes.
 
 ================= bodyMarkdown FORMAT =================
 - Real markdown: "## " sub-headings, short paragraphs (max 4 lines), tables where a comparison helps, "> " quote blocks for the big idea.
@@ -118,10 +119,10 @@ ${TONE_RULES}
 - hook: 3-5 lines, a real Indian scenario or surprising fact. Never a definition.
 - simpleDefinition: 2-3 lines a 13-year-old understands. examDefinition: the precise NCERT-style definition to write in the exam.
 - indianComparison: 5-8 lines of an accurate everyday-Indian-life comparison that makes the concept click.
-- keyTerms: 4-8 terms with student-friendly meanings.
+- keyTerms: 8-12 terms with student-friendly meanings.
 - workedProblems: ${needsNumericals(o.subject)
-    ? "2-3 of the MOST important exam problems for this topic (numericals where applicable), each solved step by step showing every step and the final answer with units."
-    : "2-3 of the most important exam questions for this topic, each with a full model answer written the way an examiner wants it."}
+    ? "4-6 of the MOST important exam problems for this topic (numericals where applicable), mixed 1/3/5-mark, each solved step by step showing every step and the final answer with units."
+    : "4-6 of the most important exam questions for this topic, mixed 1/3/5-mark, each with a full model answer written the way an examiner wants it."}
 - examFocus: 5-8 lines — what is asked from THIS topic, typical marks, keywords examiners hunt for, what a perfect 3-mark and 5-mark answer looks like.
 - commonMistake: the mistake students actually make here, and the correct version.
 - memoryTrick: one mnemonic or trick that genuinely helps.
@@ -183,7 +184,7 @@ Deno.serve(async (req) => {
       return json({ locked: true, error: "This topic is locked. Unlock the chapter to continue." }, 403);
     }
 
-    const cacheKey = `v3::${classLevel}::${subject}::${chapterName}::${topicIndex}::${topicTitle}::${language}::${studyStyle}`.toLowerCase();
+    const cacheKey = `v4::${classLevel}::${subject}::${chapterName}::${topicIndex}::${topicTitle}::${language}::${studyStyle}`.toLowerCase();
 
     if (!forceRefresh) {
       const { data: cached } = await supabase
@@ -200,7 +201,7 @@ Deno.serve(async (req) => {
       }],
       tools: [PAGE_TOOL],
       tool_choice: { type: "function", function: { name: "emit_page" } },
-      max_tokens: 12000,
+      max_tokens: 24000,
     }, 110_000);
 
     await supabase.from("chapter_pages").upsert({
