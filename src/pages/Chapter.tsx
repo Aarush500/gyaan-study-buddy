@@ -435,36 +435,30 @@ export default function Chapter() {
                 ) : null
               )}
 
-              <div className="mt-8 pt-4 border-t border-border/40">
-                <div className="flex items-center justify-between">
+              <div className="mt-8 pt-4 border-t border-border/40 pb-24 md:pb-4">
+                <div className="hidden md:flex items-center justify-between">
                   <Button variant="outline" className="glass" disabled={current === 0} onClick={() => goTo(current - 1)}>
                     <ArrowLeft className="w-4 h-4 mr-2" /> {t('previous')}
                   </Button>
                   <span className="text-xs text-muted-foreground">{current + 1} / {topics.length}</span>
                   {current < topics.length - 1 ? (
                     <Button
-                      className="glass-btn text-primary-foreground"
-                      disabled={!topicDone}
-                      onClick={() => goTo(current + 1)}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 px-6 font-semibold rounded-xl transition-transform active:scale-95"
+                      disabled={isLocked(current)}
+                      onClick={nextTopic}
                     >
-                      {t('nextTopic')} <ArrowRight className="w-4 h-4 ml-2" />
+                      {topicDone ? t('nextTopic') : 'Mark done & continue'} <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   ) : (
-                    <Button className="glass-btn text-primary-foreground" disabled>
-                      <CheckCircle className="w-4 h-4 mr-2" /> {t('chapterDone')}
+                    <Button
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 px-6 font-semibold rounded-xl"
+                      disabled={topicDone || isLocked(current)}
+                      onClick={() => toggleComplete(activeTopic)}
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" /> {topicDone ? t('chapterDone') : 'Finish chapter'}
                     </Button>
                   )}
                 </div>
-                {!topicDone && current < topics.length - 1 && (
-                  <button
-                    onClick={() => toggleComplete(activeTopic)}
-                    disabled={isLocked(current)}
-                    className="mt-3 w-full text-center text-xs text-muted-foreground hover:text-primary disabled:opacity-50"
-                  >
-                    Finish this whole topic — read it, scroll through every visual and the 3D
-                    model, then tap here to mark it complete and unlock the next one.
-                  </button>
-                )}
               </div>
             </div>
           )}
