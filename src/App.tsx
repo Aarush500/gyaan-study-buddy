@@ -10,6 +10,7 @@ import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
+import Profile from "./pages/Profile.tsx";
 import Subject from "./pages/Subject.tsx";
 import Chapter from "./pages/Chapter.tsx";
 import DoubtChat from "./pages/DoubtChat.tsx";
@@ -80,6 +81,7 @@ function AnimatedRoutes() {
       <Route path="/onboarding/style" element={<ProtectedRoute requireOnboarded={false}><PageTransition><StyleStep /></PageTransition></ProtectedRoute>} />
       <Route path="/onboarding/summary" element={<ProtectedRoute requireOnboarded={false}><PageTransition><SummaryStep /></PageTransition></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
       <Route path="/subject/:subjectId" element={<ProtectedRoute><PageTransition><Subject /></PageTransition></ProtectedRoute>} />
       <Route path="/subject/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><Chapter /></PageTransition></ProtectedRoute>} />
       <Route path="/doubt/:subjectId/:chapterId" element={<ProtectedRoute><PageTransition><DoubtChat /></PageTransition></ProtectedRoute>} />
