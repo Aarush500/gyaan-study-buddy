@@ -158,6 +158,136 @@ export const SYLLABUS: Record<string, Record<string, SubjectSyllabus>> = {
       ]),
     },
   },
+  '11': {
+    Physics: {
+      book: 'NCERT Physics Part I & II (Class 11)',
+      chapters: mk([
+        'Units and Measurements', 'Motion in a Straight Line', 'Motion in a Plane',
+        'Laws of Motion', 'Work Energy and Power', 'System of Particles and Rotational Motion',
+        'Gravitation', 'Mechanical Properties of Solids', 'Mechanical Properties of Fluids',
+        'Thermal Properties of Matter', 'Thermodynamics', 'Kinetic Theory',
+        'Oscillations', 'Waves',
+      ]),
+    },
+    Chemistry: {
+      book: 'NCERT Chemistry Part I & II (Class 11)',
+      chapters: mk([
+        'Some Basic Concepts of Chemistry', 'Structure of Atom',
+        'Classification of Elements and Periodicity in Properties',
+        'Chemical Bonding and Molecular Structure', 'Thermodynamics', 'Equilibrium',
+        'Redox Reactions', 'Organic Chemistry — Some Basic Principles and Techniques', 'Hydrocarbons',
+      ]),
+    },
+    Biology: {
+      book: 'NCERT Biology (Class 11)',
+      chapters: mk([
+        'The Living World', 'Biological Classification', 'Plant Kingdom', 'Animal Kingdom',
+        'Morphology of Flowering Plants', 'Anatomy of Flowering Plants',
+        'Structural Organisation in Animals', 'Cell: The Unit of Life', 'Biomolecules',
+        'Cell Cycle and Cell Division', 'Photosynthesis in Higher Plants', 'Respiration in Plants',
+        'Plant Growth and Development', 'Breathing and Exchange of Gases',
+        'Body Fluids and Circulation', 'Excretory Products and their Elimination',
+        'Locomotion and Movement', 'Neural Control and Coordination',
+        'Chemical Coordination and Integration',
+      ]),
+    },
+    Mathematics: {
+      book: 'NCERT Mathematics (Class 11)',
+      chapters: mk([
+        'Sets', 'Relations and Functions', 'Trigonometric Functions',
+        'Complex Numbers and Quadratic Equations', 'Linear Inequalities',
+        'Permutations and Combinations', 'Binomial Theorem', 'Sequences and Series',
+        'Straight Lines', 'Conic Sections', 'Introduction to Three Dimensional Geometry',
+        'Limits and Derivatives', 'Statistics', 'Probability',
+      ]),
+    },
+    English: {
+      book: 'Hornbill & Snapshots',
+      chapters: mk([
+        'The Portrait of a Lady', "We're Not Afraid to Die... if We Can All Be Together",
+        'Discovering Tut: the Saga Continues', "The Ailing Planet: the Green Movement's Role",
+        'The Adventure', 'Silk Road',
+        'A Photograph (Poem)', 'The Laburnum Top (Poem)', 'The Voice of the Rain (Poem)',
+        'Childhood (Poem)', 'Father to Son (Poem)',
+        'The Summer of the Beautiful White Horse', 'The Address', "Mother's Day",
+        'Birth', 'The Tale of Melon City',
+      ]),
+    },
+    Economics: {
+      book: 'Indian Economic Development & Statistics for Economics',
+      chapters: mk([
+        'Indian Economy on the Eve of Independence', 'Indian Economy 1950–1990',
+        'Liberalisation, Privatisation and Globalisation: An Appraisal',
+        'Human Capital Formation in India', 'Rural Development',
+        'Employment: Growth, Informalisation and Other Issues',
+        'Environment and Sustainable Development',
+        'Comparative Development Experiences of India and its Neighbours',
+        'Introduction (Statistics)', 'Collection of Data', 'Organisation of Data',
+        'Presentation of Data', 'Measures of Central Tendency', 'Correlation',
+        'Index Numbers', 'Use of Statistical Tools',
+      ]),
+    },
+    Accountancy: {
+      book: 'Financial Accounting Part I & II',
+      chapters: mk([
+        'Introduction to Accounting', 'Theory Base of Accounting',
+        'Recording of Transactions — I', 'Recording of Transactions — II',
+        'Bank Reconciliation Statement', 'Trial Balance and Rectification of Errors',
+        'Depreciation, Provisions and Reserves', 'Financial Statements — I', 'Financial Statements — II',
+      ]),
+    },
+    'Business Studies': {
+      book: 'NCERT Business Studies (Class 11)',
+      chapters: mk([
+        'Business, Trade and Commerce', 'Forms of Business Organisation',
+        'Private, Public and Global Enterprises', 'Business Services',
+        'Emerging Modes of Business', 'Social Responsibilities of Business and Business Ethics',
+        'Formation of a Company', 'Sources of Business Finance',
+        'MSME and Business Entrepreneurship', 'Internal Trade', 'International Business',
+      ]),
+    },
+    'Political Science': {
+      book: 'Political Theory & Indian Constitution at Work',
+      chapters: mk([
+        'Political Theory: An Introduction', 'Freedom', 'Equality', 'Social Justice',
+        'Rights', 'Citizenship', 'Nationalism', 'Secularism',
+        'Constitution: Why and How?', 'Rights in the Indian Constitution',
+        'Election and Representation', 'Executive', 'Legislature', 'Judiciary',
+        'Federalism', 'Local Governments', 'Constitution as a Living Document',
+        'The Philosophy of the Constitution',
+      ]),
+    },
+    History: {
+      book: 'Themes in World History',
+      chapters: mk([
+        'Writing and City Life', 'An Empire Across Three Continents', 'Nomadic Empires',
+        'The Three Orders', 'Changing Cultural Traditions',
+        'Displacing Indigenous Peoples', 'Paths to Modernisation',
+      ]),
+    },
+    'Computer Science': {
+      book: 'NCERT Computer Science with Python (Class 11)',
+      chapters: mk([
+        'Computer System', 'Encoding Schemes and Number System', 'Emerging Trends',
+        'Introduction to Problem Solving', 'Getting Started with Python', 'Flow of Control',
+        'Functions', 'Strings', 'Lists', 'Tuples and Dictionaries', 'Societal Impact',
+      ]),
+    },
+    Geography: {
+      book: 'Fundamentals of Physical Geography & India: Physical Environment',
+      chapters: mk([
+        'Geography as a Discipline', 'The Origin and Evolution of the Earth', 'Interior of the Earth',
+        'Distribution of Oceans and Continents', 'Geomorphic Processes',
+        'Landforms and their Evolution', 'Composition and Structure of Atmosphere',
+        'Solar Radiation, Heat Balance and Temperature',
+        'Atmospheric Circulation and Weather Systems', 'Water in the Atmosphere',
+        'World Climate and Climate Change', 'Water (Oceans)', 'Movements of Ocean Water',
+        'Biodiversity and Conservation',
+        'India — Location', 'Structure and Physiography', 'Drainage System', 'Climate',
+        'Natural Vegetation', 'Natural Hazards and Disasters',
+      ]),
+    },
+  },
 };
 
 // Chapters removed from Class 9 in 2026-27 — searching for them shows a friendly message
